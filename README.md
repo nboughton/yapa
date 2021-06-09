@@ -28,8 +28,8 @@ If, for some ungodly reason, you actually want to use it then you'll want to cre
 You can check the usage with 
 
 ```
-$yapa -h
-Prototype pocasting app with next ep autoplay
+$ yapa -h
+A basic podcast aggregator and player for listening to podcasts in episode order
 
 Usage:
   yapa [command]
@@ -38,6 +38,7 @@ Available Commands:
   add         Load a new RSS feed to the database
   help        Help about any command
   list        List loaded feeds
+  mark        Mark episodes played or unplayed, played episodes will be marked unplayed and vice versa
   play        Play a feed or episode
   update      Update the store
 

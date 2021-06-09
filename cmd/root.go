@@ -42,7 +42,7 @@ var (
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "yapa",
-	Short: "Prototype pocasting app with next ep autoplay",
+	Short: "A basic podcast aggregator and player for listening to podcasts in episode order",
 	Long:  ``,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		var err error
