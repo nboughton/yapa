@@ -52,7 +52,6 @@ var playCmd = &cobra.Command{
 		if err := store.Feeds[f].Episodes[e].PlayMpv(); err != nil {
 			log.Fatal(err)
 		}
-
 		pod.WriteStore(store)
 	},
 }

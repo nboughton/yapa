@@ -3,6 +3,7 @@ package pod
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -76,8 +77,9 @@ func (store *Store) Exists(name string) bool {
 // Update the store
 func (store *Store) Update() error {
 	for _, f := range store.Feeds {
+		fmt.Printf("Checking %s\n", f.Title)
 		if err := f.Update(); err != nil {
-			return err
+			log.Printf("Update error: %s\n", err)
 		}
 	}
 
