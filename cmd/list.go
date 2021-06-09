@@ -42,12 +42,12 @@ var listCmd = &cobra.Command{
 			return
 		}
 
-		fmt.Fprint(tw, "ID\tName\tPub Date\n")
+		fmt.Fprint(tw, "ID\tName\tPlayed\tPub Date\n")
 		for i, ep := range store.Feeds[f].Episodes {
 			if ep.Played {
-				fmt.Fprintf(tw, "%d\t>%s\t%s\n", i, ep.Title, ep.Published.Format(dateFmt))
+				fmt.Fprintf(tw, "%d\t%s\tYes\t%s\n", i, ep.Title, ep.Published.Format(dateFmt))
 			} else {
-				fmt.Fprintf(tw, "%d\t%s\t%s\n", i, ep.Title, ep.Published.Format(dateFmt))
+				fmt.Fprintf(tw, "%d\t%s\tNo\t%s\n", i, ep.Title, ep.Published.Format(dateFmt))
 			}
 		}
 		tw.Flush()
