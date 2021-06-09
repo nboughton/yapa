@@ -16,3 +16,34 @@ Seriously this is a really bad app. You can install it with Go with
 ```
 go install github.com/nboughton/yapa
 ```
+
+If, for some ungodly reason, you actually want to use it then you'll want to create a config file at ~/.config/yapa/config.json with the following template:
+
+```
+{
+	"db": "~/.config/yapa/db.json"
+}
+```
+
+You can check the usage with 
+
+```
+$yapa -h
+Prototype pocasting app with next ep autoplay
+
+Usage:
+  yapa [command]
+
+Available Commands:
+  add         Load a new RSS feed to the database
+  help        Help about any command
+  list        List loaded feeds
+  play        Play a feed or episode
+  update      Update the store
+
+Flags:
+      --config string   config file (default is $HOME/.config/yapa/config.json)
+  -h, --help            help for yapa
+
+Use "yapa [command] --help" for more information about a command.
+```

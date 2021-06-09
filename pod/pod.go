@@ -3,8 +3,6 @@ package pod
 import (
 	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -12,8 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hajimehoshi/go-mp3"
-	"github.com/hajimehoshi/oto"
 	"github.com/mmcdole/gofeed"
 )
 
@@ -167,6 +163,7 @@ type Episode struct {
 }
 
 // Play an episode
+/* oto segfaults on ctx.Close()
 func (e *Episode) Play() error {
 	// Get MP3 url
 	req, err := http.Get(e.Mp3)
@@ -198,6 +195,7 @@ func (e *Episode) Play() error {
 	e.Played = true
 	return nil
 }
+*/
 
 func (e *Episode) PlayMpv() error {
 	fmt.Printf("Episode: %s\n", e.Title)
