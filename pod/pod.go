@@ -105,23 +105,6 @@ func (f *Feed) Played() int {
 	return n
 }
 
-// Play the feed
-// This isn't great because we can't write the store after each play.
-/*
-func (f *Feed) Play() error {
-	fmt.Printf("Feed: %s\n", f.Title)
-	for _, ep := range f.Episodes {
-		if !ep.Played {
-			if err := ep.PlayMpv(); err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
-}
-*/
-
 // Feed list sortable by most reent update
 type Feeds []Feed
 
@@ -138,7 +121,7 @@ func (f *Feed) Update() error {
 	}
 
 	// Check if the latest publish date is different.
-	// Since we sort oldest to newset by default new episodes should only appear at the end
+	// Since we sort oldest to newest by default new episodes should only appear at the end
 	if latest.Updated.After(f.Updated) || len(latest.Episodes) != len(f.Episodes) {
 		for i, ep := range latest.Episodes {
 			if i < len(f.Episodes) && f.Episodes[i].Published != ep.Published {
@@ -197,6 +180,7 @@ func (e *Episode) Play() error {
 }
 */
 
+// Play an episode with mpv
 func (e *Episode) PlayMpv() error {
 	fmt.Printf("Episode: %s\n", e.Title)
 	if _, err := exec.Command("mpv", "--no-video", e.Mp3).CombinedOutput(); err != nil {
@@ -207,10 +191,10 @@ func (e *Episode) PlayMpv() error {
 	return nil
 }
 
-// Episodes is its own type in order to impement a sort interface
+// Episodes is its own type in order to implement a sort interface
 type Episodes []*Episode
 
-// Implement sort interface by pulish date for Espisodes
+// Implement sort interface by publish date for Espisodes
 func (e Episodes) Len() int           { return len(e) }
 func (e Episodes) Less(i, j int) bool { return e[i].Published.Before(e[j].Published) }
 func (e Episodes) Swap(i, j int)      { e[i], e[j] = e[j], e[i] }
