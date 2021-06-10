@@ -22,18 +22,11 @@ package cmd
 
 import (
 	"log"
-	"regexp"
 	"strconv"
 	"strings"
 
 	"github.com/nboughton/yapa/pod"
 	"github.com/spf13/cobra"
-)
-
-var (
-	single = regexp.MustCompile(`^\d+$`)
-	rnge   = regexp.MustCompile(`^\d+-\d+$`)
-	set    = regexp.MustCompile(`^\d+[,\d+]+$`)
 )
 
 // markCmd represents the mark command
@@ -50,12 +43,12 @@ var markCmd = &cobra.Command{
 		}
 
 		switch {
-		case single.MatchString(e):
+		case epSingle.MatchString(e):
 			n, _ := strconv.Atoi(e)
 			store.Feeds[f].Episodes[n].Played = !store.Feeds[f].Episodes[n].Played
 			pod.WriteStore(store)
 
-		case rnge.MatchString(e):
+		case epRange.MatchString(e):
 			r := strings.Split(e, "-")
 			start, _ := strconv.Atoi(r[0])
 			end, _ := strconv.Atoi(r[1])
@@ -67,11 +60,13 @@ var markCmd = &cobra.Command{
 			}
 			pod.WriteStore(store)
 
-		case set.MatchString(e):
+		case epSet.MatchString(e):
 			r := strings.Split(e, ",")
 			for _, i := range r {
 				d, _ := strconv.Atoi(i)
-				store.Feeds[f].Episodes[d].Played = !store.Feeds[f].Episodes[d].Played
+				if d < len(store.Feeds[f].Episodes) {
+					store.Feeds[f].Episodes[d].Played = !store.Feeds[f].Episodes[d].Played
+				}
 			}
 			pod.WriteStore(store)
 

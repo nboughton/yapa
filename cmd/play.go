@@ -22,6 +22,8 @@ package cmd
 
 import (
 	"log"
+	"strconv"
+	"strings"
 
 	"github.com/nboughton/yapa/pod"
 	"github.com/spf13/cobra"
@@ -34,25 +36,43 @@ var playCmd = &cobra.Command{
 	//Long: ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		f, _ := cmd.Flags().GetInt("feed")
-		e, _ := cmd.Flags().GetInt("episode")
+		e, _ := cmd.Flags().GetString("episodes")
 
-		if e == -1 {
+		if e == "" {
 			for _, ep := range store.Feeds[f].Episodes {
-				if !ep.Played {
-					if err := ep.PlayMpv(); err != nil {
-						log.Fatal(err)
-					}
-					ep.Played = true
-					pod.WriteStore(store)
-				}
+				play(ep)
 			}
 			return
 		}
 
-		if err := store.Feeds[f].Episodes[e].PlayMpv(); err != nil {
-			log.Fatal(err)
+		switch {
+		case epSingle.MatchString(e):
+			n, _ := strconv.Atoi(e)
+			play(store.Feeds[f].Episodes[n])
+
+		case epRange.MatchString(e):
+			r := strings.Split(e, "-")
+			start, _ := strconv.Atoi(r[0])
+			end, _ := strconv.Atoi(r[1])
+			if end+1 > len(store.Feeds[f].Episodes) {
+				end = len(store.Feeds[f].Episodes) - 1
+			}
+			for _, ep := range store.Feeds[f].Episodes[start : end+1] {
+				play(ep)
+			}
+
+		case epSet.MatchString(e):
+			r := strings.Split(e, ",")
+			for _, i := range r {
+				d, _ := strconv.Atoi(i)
+				if d < len(store.Feeds[f].Episodes) {
+					play(store.Feeds[f].Episodes[d])
+				}
+			}
+
+		default:
+			log.Fatalf("Bad criteria: %s", e)
 		}
-		pod.WriteStore(store)
 	},
 }
 
@@ -60,5 +80,14 @@ func init() {
 	rootCmd.AddCommand(playCmd)
 
 	playCmd.Flags().IntP("feed", "f", 0, "Play feed, by default episodes marked played are ignored")
-	playCmd.Flags().IntP("episode", "e", -1, "Play a specific episode, should be used in conjunction with the -f flag to ensure the correct feed is used")
+	playCmd.Flags().StringP("episodes", "e", "", "Episode or set of episodes to play. Use a single id, a hyphenated pair of ids (0-4), or a comma separated set of ids (0,5,3). Sets should have no spaces.")
+}
+
+func play(ep *pod.Episode) {
+	if !ep.Played {
+		if err := ep.PlayMpv(); err != nil {
+			log.Fatal(err)
+		}
+		pod.WriteStore(store)
+	}
 }
