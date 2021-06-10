@@ -31,7 +31,7 @@ import (
 // addCmd represents the add command
 var addCmd = &cobra.Command{
 	Use:   "add",
-	Short: "Load a new RSS feed to the database",
+	Short: "Load a new RSS feed to the store",
 	//Long: ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Loading ", args[0])
@@ -45,9 +45,9 @@ var addCmd = &cobra.Command{
 			if err := pod.WriteStore(store); err != nil {
 				log.Fatal(err)
 			}
-		} else {
-			fmt.Printf("Existing feed with name [%s] found.\n", f.Title)
+			return
 		}
+		fmt.Printf("Existing feed with name [%s] found.\n", f.Title)
 	},
 }
 

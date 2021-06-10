@@ -107,6 +107,12 @@ func (f *Feed) Played() int {
 	return n
 }
 
+// String implements the Stringer interface
+func (f *Feed) String() string {
+	return fmt.Sprintf("Title:\t%s\nURL:\t%s\nRSS:\t%s\nUpdated:\t%s\nEpisodes:\t%d/%d\n",
+		f.Title, f.URL, f.RSS, f.Updated.Format("2006-01-02"), len(f.Episodes), f.Played())
+}
+
 // Feed list sortable by most reent update
 type Feeds []Feed
 
@@ -146,6 +152,12 @@ type Episode struct {
 	Published time.Time `json:"published"`
 	Played    bool      `json:"played"`
 	// Desc      string    `json:"desc"`
+}
+
+// String implements the Stringer interface
+func (e *Episode) String() string {
+	return fmt.Sprintf("Title:\t%s\nURL:\t%s\nMP3:\t%s\nUpdated:\t%s\nPlayed:\t%v\n",
+		e.Title, e.URL, e.Mp3, e.Published.Format("2006-01-02"), e.Played)
 }
 
 // Play an episode
