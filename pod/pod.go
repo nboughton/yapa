@@ -229,7 +229,7 @@ func FromRSS(url string) (Feed, error) {
 	fd = Feed{
 		Title:   f.Title,
 		URL:     f.Link,
-		RSS:     f.FeedLink,
+		RSS:     url, // Use the passed URL as that will contain auth info if there is any
 		Updated: *f.PublishedParsed,
 	}
 
