@@ -45,17 +45,19 @@ var markCmd = &cobra.Command{
 		switch {
 		case epSingle.MatchString(e):
 			n, _ := strconv.Atoi(e)
-			store.Feeds[f].Episodes[n].Played = !store.Feeds[f].Episodes[n].Played
-			pod.WriteStore(store)
+			if n < len(store.Feeds[f].Episodes) {
+				store.Feeds[f].Episodes[n].Played = !store.Feeds[f].Episodes[n].Played
+				pod.WriteStore(store)
+			}
 
 		case epRange.MatchString(e):
 			r := strings.Split(e, "-")
-			start, _ := strconv.Atoi(r[0])
-			end, _ := strconv.Atoi(r[1])
-			if end+1 > len(store.Feeds[f].Episodes) {
-				end = len(store.Feeds[f].Episodes) - 1
+			first, _ := strconv.Atoi(r[0])
+			last, _ := strconv.Atoi(r[1])
+			if last+1 > len(store.Feeds[f].Episodes) {
+				last = len(store.Feeds[f].Episodes) - 1
 			}
-			for _, ep := range store.Feeds[f].Episodes[start : end+1] {
+			for _, ep := range store.Feeds[f].Episodes[first : last+1] {
 				ep.Played = !ep.Played
 			}
 			pod.WriteStore(store)
@@ -80,5 +82,5 @@ func init() {
 	rootCmd.AddCommand(markCmd)
 
 	markCmd.Flags().IntP("feed", "f", -1, "Feed id to mark")
-	markCmd.Flags().StringP("episodes", "e", "", "Episode or set of episodes to mark. Use a single id, a hyphenated pair of ids (0-4), or a comma separated set of ids (0,5,3). Sets should have no spaces.")
+	markCmd.Flags().StringP("episodes", "e", "", "Episode or set of episodes to mark. Use a single id, a hyphenated pair of ids (0-4), or a comma separated set of ids (0,5,3). Sets cannot have spaces.")
 }

@@ -32,7 +32,7 @@ import (
 // playCmd represents the play command
 var playCmd = &cobra.Command{
 	Use:   "play",
-	Short: "Play a feed or episode",
+	Short: "Play a feed, episode or range/set of episodes",
 	//Long: ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		f, _ := cmd.Flags().GetInt("feed")
@@ -48,7 +48,10 @@ var playCmd = &cobra.Command{
 		switch {
 		case epSingle.MatchString(e):
 			n, _ := strconv.Atoi(e)
-			play(store.Feeds[f].Episodes[n])
+			// Single eps will always play regardless of mark
+			if n < len(store.Feeds[f].Episodes) {
+				store.Feeds[f].Episodes[n].PlayMpv()
+			}
 
 		case epRange.MatchString(e):
 			r := strings.Split(e, "-")
@@ -80,7 +83,7 @@ func init() {
 	rootCmd.AddCommand(playCmd)
 
 	playCmd.Flags().IntP("feed", "f", 0, "Play feed, by default episodes marked played are ignored")
-	playCmd.Flags().StringP("episodes", "e", "", "Episode or set of episodes to play. Use a single id, a hyphenated pair of ids (0-4), or a comma separated set of ids (0,5,3). Sets should have no spaces.")
+	playCmd.Flags().StringP("episodes", "e", "", "Episode or set of episodes to play. Use a single id, a hyphenated pair of ids (0-4), or a comma separated set of ids (0,5,3). Sets cannot have spaces.")
 }
 
 func play(ep *pod.Episode) {

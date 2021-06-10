@@ -129,6 +129,7 @@ func (f *Feed) Update() error {
 			if i < len(f.Episodes) && f.Episodes[i].Published != ep.Published {
 				return fmt.Errorf("data mismatch:\nold: %+v\nnew: %+v", f.Episodes[i], ep)
 			} else if i >= len(f.Episodes) {
+				fmt.Printf("Adding episode: %s\n", ep.Title)
 				f.Episodes = append(f.Episodes, ep)
 			}
 		}
