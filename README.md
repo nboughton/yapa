@@ -35,11 +35,12 @@ Usage:
   yapa [command]
 
 Available Commands:
-  add         Load a new RSS feed to the database
+  add         Load a new RSS feed to the store
+  details     Print details of a feed or episode
   help        Help about any command
   list        List loaded feeds
-  mark        Mark episodes played or unplayed, played episodes will be marked unplayed and vice versa
-  play        Play a feed or episode
+  mark        Mark episodes played or unplayed
+  play        Play a feed, episode or range/set of episodes
   update      Update the store
 
 Flags:
