@@ -48,3 +48,27 @@ Flags:
 
 Use "yapa [command] --help" for more information about a command.
 ```
+
+## Example
+
+```
+❯ yapa list
+
+ID  Name                           Eps  Played  Last Updated
+0   RQ Early Access Patron Feed    690  0       2021-06-09 23:18
+1   Rusty Quill Gaming Podcast     294  7       2021-06-09 15:00
+2   This Paranormal Life           218  218     2021-06-08 22:38
+3   Dark Air with Terry Carnation  12   5       2021-06-08 19:25
+4   D&D is For Nerds               350  0       2021-06-05 14:00
+5   Stellar Firma                  119  9       2021-06-04 15:00
+6   The Magnus Archives            261  0       2021-06-03 15:00
+7   Hearty Dice Friends            204  0       2021-05-14 15:39
+8   Power Word Roll                70   0       2021-01-28 11:00
+
+~
+❯ yapa play -f5
+
+Feed: Stellar Firma
+Episode: Episode 8 - Pillows and Cults
+	Resuming at 12m 33s
+```
