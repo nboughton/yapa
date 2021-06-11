@@ -47,6 +47,7 @@ var markCmd = &cobra.Command{
 			n, _ := strconv.Atoi(e)
 			if n < len(store.Feeds[f].Episodes) {
 				store.Feeds[f].Episodes[n].Played = !store.Feeds[f].Episodes[n].Played
+				store.Feeds[f].Episodes[n].Elapsed = 0
 				pod.WriteStore(store)
 			}
 
@@ -59,15 +60,17 @@ var markCmd = &cobra.Command{
 			}
 			for _, ep := range store.Feeds[f].Episodes[first : last+1] {
 				ep.Played = !ep.Played
+				ep.Elapsed = 0
 			}
 			pod.WriteStore(store)
 
 		case epSet.MatchString(e):
 			r := strings.Split(e, ",")
 			for _, i := range r {
-				d, _ := strconv.Atoi(i)
-				if d < len(store.Feeds[f].Episodes) {
-					store.Feeds[f].Episodes[d].Played = !store.Feeds[f].Episodes[d].Played
+				n, _ := strconv.Atoi(i)
+				if n < len(store.Feeds[f].Episodes) {
+					store.Feeds[f].Episodes[n].Played = !store.Feeds[f].Episodes[n].Played
+					store.Feeds[f].Episodes[n].Elapsed = 0
 				}
 			}
 			pod.WriteStore(store)

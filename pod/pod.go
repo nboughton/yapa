@@ -182,47 +182,40 @@ func parseElapsed(inSeconds int) string {
 func (e *Episode) Play() error {
 	fmt.Printf("Episode: %s\n", e.Title)
 
-	var cmd *exec.Cmd
+	args := []string{"--no-video", e.Mp3}
 	if e.Elapsed > 0 {
-		cmd = exec.Command("mpv", "--no-video", e.Mp3, fmt.Sprintf("--start=%d", e.Elapsed))
-	} else {
-		cmd = exec.Command("mpv", "--no-video", e.Mp3)
+		args = append(args, fmt.Sprintf("--start=%d", e.Elapsed))
+		fmt.Printf("\tResuming at %s\n", parseElapsed(e.Elapsed))
 	}
+	cmd := exec.Command("mpv", args...)
 
 	if err := cmd.Start(); err != nil {
 		return err
 	}
 
-	// Record time elapsed
-	tick := time.NewTicker(time.Second)
+	// Record time elapsed and catch kill signal
+	sig := make(chan os.Signal, 1)
+	defer close(sig)
+
 	done := make(chan bool, 1)
 	defer close(done)
 
+	signal.Notify(sig, []os.Signal{syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT}...)
 	go func() {
+		tick := time.NewTicker(time.Second)
+		defer tick.Stop()
+
 		for {
 			select {
 			case <-tick.C:
 				e.Elapsed++
 			case <-done:
 				return
+			case s := <-sig:
+				cmd.Process.Signal(s)
+				return
 			}
 		}
-	}()
-
-	// Catch kill signal and record elapsed time before closing
-	go func() {
-		ch := make(chan os.Signal, 1)
-		signal.Notify(ch, []os.Signal{syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT}...)
-
-		// Block until signal
-		s := <-ch
-
-		// Stop tick
-		tick.Stop()
-		done <- true
-
-		// Send signal to process, this will get returned as err from cmd.Wait below
-		cmd.Process.Signal(s)
 	}()
 
 	if err := cmd.Wait(); err != nil {
@@ -230,7 +223,6 @@ func (e *Episode) Play() error {
 	}
 
 	// Tidy up if the epsidoe is played completely
-	tick.Stop()
 	done <- true
 
 	e.Played = true
