@@ -50,7 +50,7 @@ var rootCmd = &cobra.Command{
 	Long:  ``,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		var err error
-		store, err = pod.ReadStore(viper.GetString("db"))
+		store, err = pod.ReadStore(viper.GetString("store"))
 		if err != nil && err.Error() == pod.ErrorInvalidPath {
 			log.Fatal(err)
 		} else if err != nil && err.Error() == pod.ErrorStoreDoesNotExist {

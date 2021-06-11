@@ -171,10 +171,10 @@ func parseElapsed(inSeconds int) string {
 	seconds := inSeconds % 60
 
 	if minutes > 0 {
-		return fmt.Sprintf("%d:%d", minutes, seconds)
+		return fmt.Sprintf("%dm %ds", minutes, seconds)
 	}
 
-	return fmt.Sprintf("%d", seconds)
+	return fmt.Sprintf("%ds", seconds)
 }
 
 // Play an episode with mpv

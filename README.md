@@ -18,7 +18,7 @@ If, for some ungodly reason, you actually want to use it then you'll want to cre
 
 ```
 {
-	"db": "~/.config/yapa/db.json"
+	"store": "~/.config/yapa/store.json"
 }
 ```
 
