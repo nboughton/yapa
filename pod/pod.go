@@ -6,9 +6,11 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"os/signal"
 	"path/filepath"
 	"sort"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/mmcdole/gofeed"
@@ -79,7 +81,7 @@ func (store *Store) Update() error {
 	for _, f := range store.Feeds {
 		fmt.Printf("Checking %s\n", f.Title)
 		if err := f.Update(); err != nil {
-			log.Printf("Update error: %s\n", err)
+			log.Printf("\tUpdate error: %s\n", err)
 		}
 	}
 
@@ -135,7 +137,7 @@ func (f *Feed) Update() error {
 			if i < len(f.Episodes) && f.Episodes[i].Published != ep.Published {
 				return fmt.Errorf("data mismatch:\nold: %+v\nnew: %+v", f.Episodes[i], ep)
 			} else if i >= len(f.Episodes) {
-				fmt.Printf("Adding episode: %s\n", ep.Title)
+				fmt.Printf("\tAdding episode: %s\n", ep.Title)
 				f.Episodes = append(f.Episodes, ep)
 			}
 		}
@@ -151,6 +153,7 @@ type Episode struct {
 	Mp3       string    `json:"mp3"`
 	Published time.Time `json:"published"`
 	Played    bool      `json:"played"`
+	Elapsed   int       `json:"elapsed"`
 	// Desc      string    `json:"desc"`
 }
 
@@ -198,11 +201,61 @@ func (e *Episode) Play() error {
 // Play an episode with mpv
 func (e *Episode) PlayMpv() error {
 	fmt.Printf("Episode: %s\n", e.Title)
-	if _, err := exec.Command("mpv", "--no-video", e.Mp3).CombinedOutput(); err != nil {
+
+	var cmd *exec.Cmd
+	if e.Elapsed > 0 {
+		cmd = exec.Command("mpv", "--no-video", e.Mp3, fmt.Sprintf("--start=%d", e.Elapsed))
+	} else {
+		cmd = exec.Command("mpv", "--no-video", e.Mp3)
+	}
+
+	if err := cmd.Start(); err != nil {
 		return err
 	}
 
+	// Record time elapsed
+	tick := time.NewTicker(time.Second)
+	done := make(chan bool, 1)
+	defer close(done)
+
+	go func() {
+		for {
+			select {
+			case <-tick.C:
+				e.Elapsed++
+			case <-done:
+				return
+			}
+		}
+	}()
+
+	// Catch kill signal and record elapsed time before closing
+	go func() {
+		ch := make(chan os.Signal, 1)
+		signal.Notify(ch, []os.Signal{syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT}...)
+
+		// Block until signal
+		s := <-ch
+
+		// Stop tick
+		tick.Stop()
+		done <- true
+
+		// Send signal to process, this will get returned as err from cmd.Wait below
+		cmd.Process.Signal(s)
+	}()
+
+	if err := cmd.Wait(); err != nil {
+		return err
+	}
+
+	// Tidy up if the epsidoe is played completely
+	tick.Stop()
+	done <- true
+
 	e.Played = true
+	e.Elapsed = 0
+
 	return nil
 }
 

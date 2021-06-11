@@ -21,6 +21,7 @@
 package cmd
 
 import (
+	"fmt"
 	"log"
 	"strconv"
 	"strings"
@@ -38,6 +39,7 @@ var playCmd = &cobra.Command{
 		f, _ := cmd.Flags().GetInt("feed")
 		e, _ := cmd.Flags().GetString("episodes")
 
+		fmt.Printf("Feed: %s\n", store.Feeds[f].Title)
 		if e == "" {
 			for _, ep := range store.Feeds[f].Episodes {
 				play(ep)
@@ -89,6 +91,7 @@ func init() {
 func play(ep *pod.Episode) {
 	if !ep.Played {
 		if err := ep.PlayMpv(); err != nil {
+			pod.WriteStore(store)
 			log.Fatal(err)
 		}
 		pod.WriteStore(store)
