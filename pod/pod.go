@@ -127,7 +127,7 @@ func (f *Feed) Update() error {
 				f.Episodes[i].Published = ep.Published
 
 			} else if i >= len(f.Episodes) {
-				fmt.Printf("\tAdding episode: %s\n", ep.Title)
+				fmt.Printf("\tNew episode: %s\n", ep.Title)
 				f.Episodes = append(f.Episodes, ep)
 			}
 		}
@@ -158,7 +158,6 @@ type Episode struct {
 	Published time.Time `json:"published"`
 	Played    bool      `json:"played"`
 	Elapsed   int       `json:"elapsed"`
-	// Desc      string    `json:"desc"`
 }
 
 // String implements the Stringer interface
@@ -194,16 +193,18 @@ func (e *Episode) Play() error {
 	}
 
 	// Record time elapsed and catch kill signal
-	sig := make(chan os.Signal, 1)
-	defer close(sig)
-
 	done := make(chan bool, 1)
 	defer close(done)
 
-	signal.Notify(sig, []os.Signal{syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT}...)
 	go func() {
 		tick := time.NewTicker(time.Second)
 		defer tick.Stop()
+
+		sig := make(chan os.Signal, 1)
+		defer close(sig)
+
+		signal.Notify(sig, []os.Signal{syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT}...)
+		defer signal.Stop(sig)
 
 		for {
 			select {
@@ -264,7 +265,6 @@ func FromRSS(url string) (Feed, error) {
 			URL:       item.Link,
 			Mp3:       item.Enclosures[0].URL,
 			Published: *item.PublishedParsed,
-			// Desc:      item.Description,
 		})
 	}
 
