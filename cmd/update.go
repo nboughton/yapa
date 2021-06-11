@@ -21,7 +21,6 @@
 package cmd
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/nboughton/yapa/pod"
@@ -34,7 +33,6 @@ var updateCmd = &cobra.Command{
 	Short: "Update the store",
 	//Long: ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Checking for updates")
 		if err := store.Update(); err != nil {
 			log.Fatal(err)
 		}

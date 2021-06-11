@@ -79,7 +79,7 @@ func (store *Store) Exists(name string) bool {
 // Update the store
 func (store *Store) Update() error {
 	for i, f := range store.Feeds {
-		fmt.Printf("Checking %s\n", f.Title)
+		fmt.Printf("Updating %s\n", f.Title)
 		if err := store.Feeds[i].Update(); err != nil {
 			log.Printf("\tUpdate error: %s\n", err)
 		}
@@ -119,6 +119,8 @@ func (f *Feed) Update() error {
 	// Check if the latest publish date is different.
 	// Since we sort oldest to newest by default new episodes should only appear at the end
 	if latest.Updated.After(f.Updated) || len(latest.Episodes) != len(f.Episodes) {
+		f.Updated = latest.Updated
+
 		for i, ep := range latest.Episodes {
 			if i < len(f.Episodes) {
 				f.Episodes[i].Title = ep.Title
@@ -143,7 +145,7 @@ func (f *Feed) String() string {
 }
 
 // Feed list sortable by most reent update
-type Feeds []Feed
+type Feeds []*Feed
 
 // Implement sort interface by last update for Feeds
 func (f Feeds) Len() int           { return len(f) }
@@ -245,8 +247,7 @@ func FromRSS(url string) (Feed, error) {
 	var fd Feed
 
 	// Parse feed
-	fp := gofeed.NewParser()
-	f, err := fp.ParseURL(url)
+	f, err := gofeed.NewParser().ParseURL(url)
 	if err != nil {
 		return fd, err
 	}

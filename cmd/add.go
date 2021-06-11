@@ -41,7 +41,7 @@ var addCmd = &cobra.Command{
 		}
 
 		if !store.Exists(f.Title) {
-			store.Feeds = append(store.Feeds, f)
+			store.Feeds = append(store.Feeds, &f)
 			if err := pod.WriteStore(store); err != nil {
 				log.Fatal(err)
 			}

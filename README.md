@@ -8,6 +8,8 @@ Yapa depends on MPV to actually play episodes.
 
 yapa automatically sorts episodes from oldest to newest and, by default, plays the feed in date order. It then marks each episode played at the end of the file and next time you play the feed it picks up at the oldest unplayed episode. If you hit ctrl+c during an episode it notes when you left off and will resume at that point the next time that episode is played.
 
+Yapa is *very* basic. It stores feed data as a JSON file that is read when the yapa command is invoked and written on any change. Don't try to update the store while yapa is already playing as the changes will be overwritten when the store is updated after each episode.
+
 ## Install
 
 At some point I might provide an AUR package for Arch Linux. At the moment you can install it with Go with 
