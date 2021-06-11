@@ -1,20 +1,22 @@
 # yapa: Yet Another Podcast App
 
-yapa is my super basic podcast aggregator that does exactly what I want. It uses mpv to play files. Please don't submit feature requests. I wrote this just for me and I'm not interested in anyone elses requirements.
+yapa is my super basic podcast aggregator that does exactly what I want. The use case for this app is to listen to podcasts in episode order and resume exactly where you left off.
+
+Yapa depends on MPV to actually play episodes.
 
 ## What do?
 
-yapa has some subcommands that allow you to add, list, and play feeds. It automatically sorts episodes from oldest to newest and plays the feed in date order. It then marks each episode played at the end of the file and next time you play the feed it picks up at the oldest unplayed episode.
+yapa automatically sorts episodes from oldest to newest and, by default, plays the feed in date order. It then marks each episode played at the end of the file and next time you play the feed it picks up at the oldest unplayed episode. If you hit ctrl+c during an episode it notes when you left off and will resume at that point the next time that episode is played.
 
-## Why are you still reading this?
+## Install
 
-Seriously this is a really bad app. You can install it with Go with 
+At some point I might provide an AUR package for Arch Linux. At the moment you can install it with Go with 
 
 ```
 go install github.com/nboughton/yapa
 ```
 
-If, for some ungodly reason, you actually want to use it then you'll want to create a config file at ~/.config/yapa/config.json with the following template:
+Then create a config file at ~/.config/yapa/config.json
 
 ```
 {
@@ -36,7 +38,7 @@ Available Commands:
   details     Print details of a feed or episode
   help        Help about any command
   list        List loaded feeds
-  mark        Mark episodes played or unplayed
+  mark        Mark toggles episodes played or unplayed
   play        Play a feed, episode or range/set of episodes
   update      Update the store
 
