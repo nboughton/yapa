@@ -23,6 +23,7 @@ package cmd
 import (
 	"fmt"
 	"log"
+	"os"
 	"strconv"
 	"strings"
 
@@ -52,7 +53,7 @@ var playCmd = &cobra.Command{
 			n, _ := strconv.Atoi(e)
 			// Single eps will always play regardless of mark
 			if n < len(store.Feeds[f].Episodes) {
-				store.Feeds[f].Episodes[n].PlayMpv()
+				store.Feeds[f].Episodes[n].Play()
 			}
 
 		case epRange.MatchString(e):
@@ -90,9 +91,9 @@ func init() {
 
 func play(ep *pod.Episode) {
 	if !ep.Played {
-		if err := ep.PlayMpv(); err != nil {
+		if err := ep.Play(); err != nil {
 			pod.WriteStore(store)
-			log.Fatal(err)
+			os.Exit(1)
 		}
 		pod.WriteStore(store)
 	}

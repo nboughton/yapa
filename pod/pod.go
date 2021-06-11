@@ -78,9 +78,9 @@ func (store *Store) Exists(name string) bool {
 
 // Update the store
 func (store *Store) Update() error {
-	for _, f := range store.Feeds {
+	for i, f := range store.Feeds {
 		fmt.Printf("Checking %s\n", f.Title)
-		if err := f.Update(); err != nil {
+		if err := store.Feeds[i].Update(); err != nil {
 			log.Printf("\tUpdate error: %s\n", err)
 		}
 	}
@@ -109,6 +109,33 @@ func (f *Feed) Played() int {
 	return n
 }
 
+// Update the feed
+func (f *Feed) Update() error {
+	latest, err := FromRSS(f.RSS)
+	if err != nil {
+		return err
+	}
+
+	// Check if the latest publish date is different.
+	// Since we sort oldest to newest by default new episodes should only appear at the end
+	if latest.Updated.After(f.Updated) || len(latest.Episodes) != len(f.Episodes) {
+		for i, ep := range latest.Episodes {
+			if i < len(f.Episodes) {
+				f.Episodes[i].Title = ep.Title
+				f.Episodes[i].URL = ep.URL
+				f.Episodes[i].Mp3 = ep.Mp3
+				f.Episodes[i].Published = ep.Published
+
+			} else if i >= len(f.Episodes) {
+				fmt.Printf("\tAdding episode: %s\n", ep.Title)
+				f.Episodes = append(f.Episodes, ep)
+			}
+		}
+	}
+
+	return nil
+}
+
 // String implements the Stringer interface
 func (f *Feed) String() string {
 	return fmt.Sprintf("Title:\t%s\nURL:\t%s\nRSS:\t%s\nUpdated:\t%s\nEpisodes:\t%d/%d\n",
@@ -123,29 +150,6 @@ func (f Feeds) Len() int           { return len(f) }
 func (f Feeds) Less(i, j int) bool { return f[i].Updated.After(f[j].Updated) }
 func (f Feeds) Swap(i, j int)      { f[i], f[j] = f[j], f[i] }
 
-// Update the feed
-func (f *Feed) Update() error {
-	latest, err := FromRSS(f.RSS)
-	if err != nil {
-		return err
-	}
-
-	// Check if the latest publish date is different.
-	// Since we sort oldest to newest by default new episodes should only appear at the end
-	if latest.Updated.After(f.Updated) || len(latest.Episodes) != len(f.Episodes) {
-		for i, ep := range latest.Episodes {
-			if i < len(f.Episodes) && f.Episodes[i].Published != ep.Published {
-				return fmt.Errorf("data mismatch:\nold: %+v\nnew: %+v", f.Episodes[i], ep)
-			} else if i >= len(f.Episodes) {
-				fmt.Printf("\tAdding episode: %s\n", ep.Title)
-				f.Episodes = append(f.Episodes, ep)
-			}
-		}
-	}
-
-	return nil
-}
-
 // Episode data
 type Episode struct {
 	Title     string    `json:"title"`
@@ -159,47 +163,23 @@ type Episode struct {
 
 // String implements the Stringer interface
 func (e *Episode) String() string {
-	return fmt.Sprintf("Title:\t%s\nURL:\t%s\nMP3:\t%s\nUpdated:\t%s\nPlayed:\t%v\n",
-		e.Title, e.URL, e.Mp3, e.Published.Format("2006-01-02"), e.Played)
+	return fmt.Sprintf("Title:\t%s\nURL:\t%s\nMP3:\t%s\nUpdated:\t%s\nPlayed:\t%v\nElapsed:\t%s\n",
+		e.Title, e.URL, e.Mp3, e.Published.Format("2006-01-02"), e.Played, parseElapsed(e.Elapsed))
 }
 
-// Play an episode
-/* oto segfaults on ctx.Close()
-func (e *Episode) Play() error {
-	// Get MP3 url
-	req, err := http.Get(e.Mp3)
-	if err != nil {
-		return err
-	}
-	defer req.Body.Close()
+func parseElapsed(inSeconds int) string {
+	minutes := inSeconds / 60
+	seconds := inSeconds % 60
 
-	dec, err := mp3.NewDecoder(req.Body)
-	if err != nil {
-		return err
+	if minutes > 0 {
+		return fmt.Sprintf("%d:%d", minutes, seconds)
 	}
 
-	ctx, err := oto.NewContext(dec.SampleRate(), 2, 2, 4096)
-	if err != nil {
-		return err
-	}
-	defer ctx.Close()
-
-	plr := ctx.NewPlayer()
-	defer plr.Close()
-
-	fmt.Printf("Episode: %s\n", e.Title)
-	if _, err := io.Copy(plr, dec); err != nil {
-		return err
-	}
-
-	// Dont forget to write the store after each succesful play
-	e.Played = true
-	return nil
+	return fmt.Sprintf("%d", seconds)
 }
-*/
 
 // Play an episode with mpv
-func (e *Episode) PlayMpv() error {
+func (e *Episode) Play() error {
 	fmt.Printf("Episode: %s\n", e.Title)
 
 	var cmd *exec.Cmd
