@@ -180,10 +180,14 @@ func parseElapsed(inSeconds int) string {
 }
 
 // Play an episode with mpv
-func (e *Episode) Play() error {
+func (e *Episode) Play(speed float32) error {
 	fmt.Printf("Playing: %s\n", e.Title)
 
-	args := []string{"--no-video", e.Mp3}
+	args := []string{
+		"--no-video",
+		e.Mp3,
+		fmt.Sprintf("--speed=%.2f", speed),
+	}
 	if e.Elapsed > 0 {
 		args = append(args, fmt.Sprintf("--start=%d", e.Elapsed))
 		fmt.Printf("\tResuming at %s\n", parseElapsed(e.Elapsed))

@@ -39,11 +39,12 @@ var playCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		f, _ := cmd.Flags().GetInt("feed")
 		e, _ := cmd.Flags().GetString("episodes")
+		s, _ := cmd.Flags().GetFloat32("speed")
 
 		fmt.Printf("Feed: %s\n", store.Feeds[f].Title)
 		if e == "" {
 			for _, ep := range store.Feeds[f].Episodes {
-				play(ep)
+				play(ep, s)
 			}
 			return
 		}
@@ -53,7 +54,7 @@ var playCmd = &cobra.Command{
 			n, _ := strconv.Atoi(e)
 			// Single eps will always play regardless of mark
 			if n < len(store.Feeds[f].Episodes) {
-				store.Feeds[f].Episodes[n].Play()
+				store.Feeds[f].Episodes[n].Play(s)
 			}
 
 		case epRange.MatchString(e):
@@ -64,7 +65,7 @@ var playCmd = &cobra.Command{
 				end = len(store.Feeds[f].Episodes) - 1
 			}
 			for _, ep := range store.Feeds[f].Episodes[start : end+1] {
-				play(ep)
+				play(ep, s)
 			}
 
 		case epSet.MatchString(e):
@@ -72,7 +73,7 @@ var playCmd = &cobra.Command{
 			for _, i := range r {
 				d, _ := strconv.Atoi(i)
 				if d < len(store.Feeds[f].Episodes) {
-					play(store.Feeds[f].Episodes[d])
+					play(store.Feeds[f].Episodes[d], s)
 				}
 			}
 
@@ -87,11 +88,12 @@ func init() {
 
 	playCmd.Flags().IntP("feed", "f", 0, "Play feed, by default episodes marked played are ignored")
 	playCmd.Flags().StringP("episodes", "e", "", "Episode or set of episodes to play. Use a single id, a hyphenated pair of ids (0-4), or a comma separated set of ids (0,5,3). Sets cannot have spaces.")
+	playCmd.Flags().Float32P("speed", "s", 1.0, "Play speed. Accepts values from 0.01 to 100")
 }
 
-func play(ep *pod.Episode) {
+func play(ep *pod.Episode, speed float32) {
 	if !ep.Played {
-		if err := ep.Play(); err != nil {
+		if err := ep.Play(speed); err != nil {
 			pod.WriteStore(store)
 			os.Exit(1)
 		}
