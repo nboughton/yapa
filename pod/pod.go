@@ -181,7 +181,7 @@ func parseElapsed(inSeconds int) string {
 
 // Play an episode with mpv
 func (e *Episode) Play() error {
-	fmt.Printf("Episode: %s\n", e.Title)
+	fmt.Printf("Playing: %s\n", e.Title)
 
 	args := []string{"--no-video", e.Mp3}
 	if e.Elapsed > 0 {
