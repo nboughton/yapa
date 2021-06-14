@@ -87,13 +87,13 @@ Well... Sort of? I make playlists like so:
 ```
 $ yapa list -f6 | grep term | awk '{print $1}' | paste -sd ','
 
-248,249,250,251,252,253,254,255,256,257,258,259,260,261,262,263,264,265,266,267,268,269,270,271,272,273,279,280,281,282,283,284,285,286,287,288,289,290,291,292,293,294,295,296,297,298,299,300,301,302,303,315,316,317,318,319,320,321,322,323,324,325,326,327,328,329,330,331,332,333,334,335,336,337,338,339,340
+248,249,250,251,252,253,254
 ```
 
 Which gives you a comma separated list of episodes that match your term. Leave out the awk and paste pipes to see the episode list so you can refine your grep. You can then play just those episodes with:
 
 ```
-yapa play -f6 -e248,249,250,251,252,253,254,255,256,257,258,259,260,261,262,263,264,265,266,267,268,269,270,271,272,273,279,280,281,282,283,284,285,286,287,288,289,290,291,292,293,294,295,296,297,298,299,300,301,302,303,315,316,317,318,319,320,321,322,323,324,325,326,327,328,329,330,331,332,333,334,335,336,337,338,339,340
+yapa play -f6 -e248,249,250,251,252,253,254
 ```
 
 Played episodes will be ignored by default and yapa should just pick up wherever you left off.
