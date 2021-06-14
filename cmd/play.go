@@ -37,48 +37,52 @@ var playCmd = &cobra.Command{
 	Short: "Play a feed, episode or range/set of episodes",
 	//Long: ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		f, _ := cmd.Flags().GetInt("feed")
-		e, _ := cmd.Flags().GetString("episodes")
-		s, _ := cmd.Flags().GetFloat32("speed")
+		feed, _ := cmd.Flags().GetInt("feed")
+		episodes, _ := cmd.Flags().GetString("episodes")
+		speed, _ := cmd.Flags().GetFloat32("speed")
 
-		fmt.Printf("Feed: %s\n", store.Feeds[f].Title)
-		if e == "" {
-			for _, ep := range store.Feeds[f].Episodes {
-				play(ep, s)
+		fmt.Printf("Feed: %speed\n", store.Feeds[feed].Title)
+		if episodes == "" {
+			for id, ep := range store.Feeds[feed].Episodes {
+				play(ep, feed, id, speed)
 			}
 			return
 		}
 
 		switch {
-		case epSingle.MatchString(e):
-			n, _ := strconv.Atoi(e)
+		case epSingle.MatchString(episodes):
+			id, _ := strconv.Atoi(episodes)
+
 			// Single eps will always play regardless of mark
-			if n < len(store.Feeds[f].Episodes) {
-				store.Feeds[f].Episodes[n].Play(s)
+			if id < len(store.Feeds[feed].Episodes) {
+				store.Feeds[feed].Episodes[id].Play(feed, id, speed)
 			}
 
-		case epRange.MatchString(e):
-			r := strings.Split(e, "-")
-			start, _ := strconv.Atoi(r[0])
-			end, _ := strconv.Atoi(r[1])
-			if end+1 > len(store.Feeds[f].Episodes) {
-				end = len(store.Feeds[f].Episodes) - 1
-			}
-			for _, ep := range store.Feeds[f].Episodes[start : end+1] {
-				play(ep, s)
+		case epRange.MatchString(episodes):
+			set := strings.Split(episodes, "-")
+			first, _ := strconv.Atoi(set[0])
+			last, _ := strconv.Atoi(set[1])
+
+			if last+1 > len(store.Feeds[feed].Episodes) {
+				last = len(store.Feeds[feed].Episodes) - 1
 			}
 
-		case epSet.MatchString(e):
-			r := strings.Split(e, ",")
-			for _, i := range r {
-				d, _ := strconv.Atoi(i)
-				if d < len(store.Feeds[f].Episodes) {
-					play(store.Feeds[f].Episodes[d], s)
+			for id, ep := range store.Feeds[feed].Episodes[first : last+1] {
+				play(ep, feed, first+id, speed)
+			}
+
+		case epSet.MatchString(episodes):
+			set := strings.Split(episodes, ",")
+
+			for _, i := range set {
+				id, _ := strconv.Atoi(i)
+				if id < len(store.Feeds[feed].Episodes) {
+					play(store.Feeds[feed].Episodes[id], feed, id, speed)
 				}
 			}
 
 		default:
-			log.Fatalf("Bad criteria: %s", e)
+			log.Fatalf("Bad criteria: %speed", episodes)
 		}
 	},
 }
@@ -91,9 +95,9 @@ func init() {
 	playCmd.Flags().Float32P("speed", "s", 1.0, "Play speed. Accepts values from 0.01 to 100")
 }
 
-func play(ep *pod.Episode, speed float32) {
+func play(ep *pod.Episode, feed, id int, speed float32) {
 	if !ep.Played {
-		if err := ep.Play(speed); err != nil {
+		if err := ep.Play(feed, id, speed); err != nil {
 			pod.WriteStore(store)
 			os.Exit(1)
 		}

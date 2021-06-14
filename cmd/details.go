@@ -35,44 +35,48 @@ var detailsCmd = &cobra.Command{
 	Short: "Print details of a feed or episode",
 	//Long: ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		f, _ := cmd.Flags().GetInt("feed")
-		e, _ := cmd.Flags().GetString("episodes")
+		feed, _ := cmd.Flags().GetInt("feed")
+		episodes, _ := cmd.Flags().GetString("episodes")
 
-		if e == "" {
-			fmt.Fprint(tw, store.Feeds[f].String())
+		if episodes == "" {
+			fmt.Fprint(tw, store.Feeds[feed].String())
 			tw.Flush()
 			return
 		}
 
 		switch {
-		case epSingle.MatchString(e):
-			n, _ := strconv.Atoi(e)
-			if n < len(store.Feeds[f].Episodes) {
-				fmt.Fprint(tw, store.Feeds[f].Episodes[n])
+		case epSingle.MatchString(episodes):
+			id, _ := strconv.Atoi(episodes)
+
+			if id < len(store.Feeds[feed].Episodes) {
+				fmt.Fprint(tw, store.Feeds[feed].Episodes[id])
 			}
 
-		case epRange.MatchString(e):
-			r := strings.Split(e, "-")
-			start, _ := strconv.Atoi(r[0])
-			end, _ := strconv.Atoi(r[1])
-			if end+1 > len(store.Feeds[f].Episodes) {
-				end = len(store.Feeds[f].Episodes) - 1
+		case epRange.MatchString(episodes):
+			set := strings.Split(episodes, "-")
+			first, _ := strconv.Atoi(set[0])
+			last, _ := strconv.Atoi(set[1])
+
+			if last+1 > len(store.Feeds[feed].Episodes) {
+				last = len(store.Feeds[feed].Episodes) - 1
 			}
-			for _, ep := range store.Feeds[f].Episodes[start : end+1] {
+
+			for _, ep := range store.Feeds[feed].Episodes[first : last+1] {
 				fmt.Fprint(tw, ep)
 			}
 
-		case epSet.MatchString(e):
-			r := strings.Split(e, ",")
-			for _, i := range r {
-				d, _ := strconv.Atoi(i)
-				if d < len(store.Feeds[f].Episodes) {
-					fmt.Fprint(tw, store.Feeds[f].Episodes[d])
+		case epSet.MatchString(episodes):
+			set := strings.Split(episodes, ",")
+
+			for _, i := range set {
+				id, _ := strconv.Atoi(i)
+				if id < len(store.Feeds[feed].Episodes) {
+					fmt.Fprint(tw, store.Feeds[feed].Episodes[id])
 				}
 			}
 
 		default:
-			log.Fatalf("Bad criteria: %s", e)
+			log.Fatalf("Bad criteria: %s", episodes)
 		}
 		tw.Flush()
 	},

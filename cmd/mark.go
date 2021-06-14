@@ -35,48 +35,78 @@ var markCmd = &cobra.Command{
 	Short: "Mark toggles episodes played or unplayed",
 	//Long: ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		f, _ := cmd.Flags().GetInt("feed")
-		e, _ := cmd.Flags().GetString("episodes")
+		feed, _ := cmd.Flags().GetInt("feed")
+		episodes, _ := cmd.Flags().GetString("episodes")
+		played, _ := cmd.Flags().GetBool("played")
+		unplayed, _ := cmd.Flags().GetBool("unplayed")
 
-		if f == -1 {
+		if feed == -1 {
 			log.Fatal("No feed selected")
 		}
 
 		switch {
-		case epSingle.MatchString(e):
-			n, _ := strconv.Atoi(e)
-			if n < len(store.Feeds[f].Episodes) {
-				store.Feeds[f].Episodes[n].Played = !store.Feeds[f].Episodes[n].Played
-				store.Feeds[f].Episodes[n].Elapsed = 0
+		case epSingle.MatchString(episodes):
+			id, _ := strconv.Atoi(episodes)
+
+			if id < len(store.Feeds[feed].Episodes) {
+				switch {
+				case played:
+					store.Feeds[feed].Episodes[id].Played = true
+				case unplayed:
+					store.Feeds[feed].Episodes[id].Played = false
+				default:
+					store.Feeds[feed].Episodes[id].Played = !store.Feeds[feed].Episodes[id].Played
+				}
+
+				store.Feeds[feed].Episodes[id].Elapsed = 0
 				pod.WriteStore(store)
 			}
 
-		case epRange.MatchString(e):
-			r := strings.Split(e, "-")
-			first, _ := strconv.Atoi(r[0])
-			last, _ := strconv.Atoi(r[1])
-			if last+1 > len(store.Feeds[f].Episodes) {
-				last = len(store.Feeds[f].Episodes) - 1
+		case epRange.MatchString(episodes):
+			set := strings.Split(episodes, "-")
+			first, _ := strconv.Atoi(set[0])
+			last, _ := strconv.Atoi(set[1])
+
+			if last+1 > len(store.Feeds[feed].Episodes) {
+				last = len(store.Feeds[feed].Episodes) - 1
 			}
-			for _, ep := range store.Feeds[f].Episodes[first : last+1] {
-				ep.Played = !ep.Played
+
+			for _, ep := range store.Feeds[feed].Episodes[first : last+1] {
+				switch {
+				case played:
+					ep.Played = true
+				case unplayed:
+					ep.Played = false
+				default:
+					ep.Played = !ep.Played
+				}
+
 				ep.Elapsed = 0
 			}
 			pod.WriteStore(store)
 
-		case epSet.MatchString(e):
-			r := strings.Split(e, ",")
-			for _, i := range r {
-				n, _ := strconv.Atoi(i)
-				if n < len(store.Feeds[f].Episodes) {
-					store.Feeds[f].Episodes[n].Played = !store.Feeds[f].Episodes[n].Played
-					store.Feeds[f].Episodes[n].Elapsed = 0
+		case epSet.MatchString(episodes):
+			set := strings.Split(episodes, ",")
+
+			for _, i := range set {
+				id, _ := strconv.Atoi(i)
+				if id < len(store.Feeds[feed].Episodes) {
+					switch {
+					case played:
+						store.Feeds[feed].Episodes[id].Played = true
+					case unplayed:
+						store.Feeds[feed].Episodes[id].Played = false
+					default:
+						store.Feeds[feed].Episodes[id].Played = !store.Feeds[feed].Episodes[id].Played
+					}
+
+					store.Feeds[feed].Episodes[id].Elapsed = 0
 				}
 			}
 			pod.WriteStore(store)
 
 		default:
-			log.Fatalf("Bad criteria: %s", e)
+			log.Fatalf("Bad criteria: %s", episodes)
 		}
 	},
 }
@@ -86,4 +116,6 @@ func init() {
 
 	markCmd.Flags().IntP("feed", "f", -1, "Feed id to mark")
 	markCmd.Flags().StringP("episodes", "e", "", "Episode or set of episodes to mark. Use a single id, a hyphenated pair of ids (0-4), or a comma separated set of ids (0,5,3). Sets cannot have spaces.")
+	markCmd.Flags().BoolP("played", "p", false, "Mark episodes played")
+	markCmd.Flags().BoolP("unplayed", "u", false, "Mark episodes unplayed")
 }

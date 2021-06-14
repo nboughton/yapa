@@ -180,8 +180,8 @@ func parseElapsed(inSeconds int) string {
 }
 
 // Play an episode with mpv
-func (e *Episode) Play(speed float32) error {
-	fmt.Printf("Playing: %s\n", e.Title)
+func (e *Episode) Play(feed, id int, speed float32) error {
+	fmt.Printf("Playing: [%d:%d] %s\n", feed, id, e.Title)
 
 	args := []string{
 		"--no-video",
@@ -241,7 +241,7 @@ func (e *Episode) Play(speed float32) error {
 // Episodes is its own type in order to implement a sort interface
 type Episodes []*Episode
 
-// Implement sort interface by publish date for Espisodes
+// Implement sort interface by publish date for Episodes
 func (e Episodes) Len() int           { return len(e) }
 func (e Episodes) Less(i, j int) bool { return e[i].Published.Before(e[j].Published) }
 func (e Episodes) Swap(i, j int)      { e[i], e[j] = e[j], e[i] }
