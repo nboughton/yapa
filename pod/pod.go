@@ -256,20 +256,34 @@ func FromRSS(url string) (Feed, error) {
 		return fd, err
 	}
 
+	var feedPub *time.Time
+	if f.Published != "" {
+		feedPub = f.PublishedParsed
+	} else if f.Updated != "" {
+		feedPub = f.UpdatedParsed
+	}
+
 	// Load key data to Feed obj
 	fd = Feed{
 		Title:   f.Title,
 		URL:     f.Link,
 		RSS:     url, // Use the passed URL as that will contain auth info if there is any
-		Updated: *f.PublishedParsed,
+		Updated: *feedPub,
 	}
 
 	for _, item := range f.Items {
+		var epPub *time.Time
+		if item.Published != "" {
+			epPub = item.PublishedParsed
+		} else if item.Updated != "" {
+			epPub = item.UpdatedParsed
+		}
+
 		fd.Episodes = append(fd.Episodes, &Episode{
 			Title:     item.Title,
 			URL:       item.Link,
 			Mp3:       item.Enclosures[0].URL,
-			Published: *item.PublishedParsed,
+			Published: *epPub,
 		})
 	}
 
