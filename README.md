@@ -12,7 +12,12 @@ Yapa is *very* basic. It stores feed data as a JSON file that is read when the y
 
 ## Install
 
-At some point I might provide an AUR package for Arch Linux. At the moment you can install it with Go with 
+For Arch Linux:
+```
+yay -S yapa
+```
+
+Or you can build it from source locally:
 
 ```
 go install github.com/nboughton/yapa
