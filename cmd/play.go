@@ -41,7 +41,7 @@ var playCmd = &cobra.Command{
 		episodes, _ := cmd.Flags().GetString("episodes")
 		speed, _ := cmd.Flags().GetFloat32("speed")
 
-		fmt.Printf("Feed: %speed\n", store.Feeds[feed].Title)
+		fmt.Printf("Feed: %s\n", store.Feeds[feed].Title)
 		if episodes == "" {
 			for id, ep := range store.Feeds[feed].Episodes {
 				play(ep, feed, id, speed)
