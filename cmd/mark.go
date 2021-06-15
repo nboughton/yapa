@@ -35,10 +35,12 @@ var markCmd = &cobra.Command{
 	Short: "Mark toggles episodes played or unplayed",
 	//Long: ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		feed, _ := cmd.Flags().GetInt("feed")
-		episodes, _ := cmd.Flags().GetString("episodes")
-		played, _ := cmd.Flags().GetBool("played")
-		unplayed, _ := cmd.Flags().GetBool("unplayed")
+		var (
+			feed, _     = cmd.Flags().GetInt("feed")
+			episodes, _ = cmd.Flags().GetString("episodes")
+			played, _   = cmd.Flags().GetBool("played")
+			unplayed, _ = cmd.Flags().GetBool("unplayed")
+		)
 
 		if feed == -1 {
 			log.Fatal("No feed selected")
@@ -63,9 +65,11 @@ var markCmd = &cobra.Command{
 			}
 
 		case epRange.MatchString(episodes):
-			set := strings.Split(episodes, "-")
-			first, _ := strconv.Atoi(set[0])
-			last, _ := strconv.Atoi(set[1])
+			var (
+				set      = strings.Split(episodes, "-")
+				first, _ = strconv.Atoi(set[0])
+				last, _  = strconv.Atoi(set[1])
+			)
 
 			if last+1 > len(store.Feeds[feed].Episodes) {
 				last = len(store.Feeds[feed].Episodes) - 1

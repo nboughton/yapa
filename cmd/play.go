@@ -37,9 +37,11 @@ var playCmd = &cobra.Command{
 	Short: "Play a feed, episode or range/set of episodes",
 	//Long: ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		feed, _ := cmd.Flags().GetInt("feed")
-		episodes, _ := cmd.Flags().GetString("episodes")
-		speed, _ := cmd.Flags().GetFloat32("speed")
+		var (
+			feed, _     = cmd.Flags().GetInt("feed")
+			episodes, _ = cmd.Flags().GetString("episodes")
+			speed, _    = cmd.Flags().GetFloat32("speed")
+		)
 
 		fmt.Printf("Feed: %s\n", store.Feeds[feed].Title)
 		if episodes == "" {
@@ -59,9 +61,11 @@ var playCmd = &cobra.Command{
 			}
 
 		case epRange.MatchString(episodes):
-			set := strings.Split(episodes, "-")
-			first, _ := strconv.Atoi(set[0])
-			last, _ := strconv.Atoi(set[1])
+			var (
+				set      = strings.Split(episodes, "-")
+				first, _ = strconv.Atoi(set[0])
+				last, _  = strconv.Atoi(set[1])
+			)
 
 			if last+1 > len(store.Feeds[feed].Episodes) {
 				last = len(store.Feeds[feed].Episodes) - 1
@@ -82,7 +86,7 @@ var playCmd = &cobra.Command{
 			}
 
 		default:
-			log.Fatalf("Bad criteria: %speed", episodes)
+			log.Fatalf("Bad criteria: %s", episodes)
 		}
 	},
 }

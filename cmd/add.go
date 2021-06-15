@@ -35,19 +35,19 @@ var addCmd = &cobra.Command{
 	//Long: ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Loading ", args[0])
-		f, err := pod.FromRSS(args[0])
+		feed, err := pod.FromRSS(args[0])
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		if !store.Exists(f.Title) {
-			store.Feeds = append(store.Feeds, &f)
+		if !store.Exists(feed.Title) {
+			store.Feeds = append(store.Feeds, &feed)
 			if err := pod.WriteStore(store); err != nil {
 				log.Fatal(err)
 			}
 			return
 		}
-		fmt.Printf("Existing feed with name [%s] found.\n", f.Title)
+		fmt.Printf("Existing feed with name [%s] found.\n", feed.Title)
 	},
 }
 

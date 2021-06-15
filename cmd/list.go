@@ -32,18 +32,18 @@ var listCmd = &cobra.Command{
 	Short: "List loaded feeds",
 	//Long: ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		f, _ := cmd.Flags().GetInt("feed")
-		if f < 0 {
+		feed, _ := cmd.Flags().GetInt("feed")
+		if feed < 0 {
 			fmt.Fprint(tw, "ID\tName\tEps\tPlayed\tLast Updated\n")
-			for i, f := range store.Feeds {
-				fmt.Fprintf(tw, "%d\t%s\t%d\t%d\t%s\n", i, f.Title, len(f.Episodes), f.Played(), f.Updated.Format(dateFmt))
+			for i, feed := range store.Feeds {
+				fmt.Fprintf(tw, "%d\t%s\t%d\t%d\t%s\n", i, feed.Title, len(feed.Episodes), feed.Played(), feed.Updated.Format(dateFmt))
 			}
 			tw.Flush()
 			return
 		}
 
 		fmt.Fprint(tw, "ID\tName\tPlayed\tPub Date\n")
-		for i, ep := range store.Feeds[f].Episodes {
+		for i, ep := range store.Feeds[feed].Episodes {
 			if ep.Played {
 				fmt.Fprintf(tw, "%d\t%s\tYes\t%s\n", i, ep.Title, ep.Published.Format(dateFmt))
 			} else {

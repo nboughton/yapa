@@ -35,8 +35,10 @@ var detailsCmd = &cobra.Command{
 	Short: "Print details of a feed or episode",
 	//Long: ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		feed, _ := cmd.Flags().GetInt("feed")
-		episodes, _ := cmd.Flags().GetString("episodes")
+		var (
+			feed, _     = cmd.Flags().GetInt("feed")
+			episodes, _ = cmd.Flags().GetString("episodes")
+		)
 
 		if episodes == "" {
 			fmt.Fprint(tw, store.Feeds[feed].String())
@@ -53,9 +55,11 @@ var detailsCmd = &cobra.Command{
 			}
 
 		case epRange.MatchString(episodes):
-			set := strings.Split(episodes, "-")
-			first, _ := strconv.Atoi(set[0])
-			last, _ := strconv.Atoi(set[1])
+			var (
+				set      = strings.Split(episodes, "-")
+				first, _ = strconv.Atoi(set[0])
+				last, _  = strconv.Atoi(set[1])
+			)
 
 			if last+1 > len(store.Feeds[feed].Episodes) {
 				last = len(store.Feeds[feed].Episodes) - 1
