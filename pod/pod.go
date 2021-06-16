@@ -181,14 +181,6 @@ func parseElapsed(inSeconds int) string {
 
 // Play an episode with mpv
 func (e *Episode) Play(feedName string, speed float32) error {
-	clear := exec.Command("clear")
-	clear.Stdout = os.Stdout
-	if err := clear.Run(); err != nil {
-		return err
-	}
-
-	fmt.Printf("Feed: %s\nPlaying: %s\n", feedName, e.Title)
-
 	args := []string{
 		"--no-video",
 		e.Mp3,
@@ -197,6 +189,7 @@ func (e *Episode) Play(feedName string, speed float32) error {
 	if e.Elapsed > 0 {
 		args = append(args, fmt.Sprintf("--start=%d", e.Elapsed))
 		fmt.Printf("-> Resuming at %s\n", parseElapsed(e.Elapsed))
+		time.Sleep(time.Second * 3)
 	}
 	cmd := exec.Command("mpv", args...)
 
@@ -222,6 +215,14 @@ func (e *Episode) Play(feedName string, speed float32) error {
 			select {
 			case <-tick.C:
 				e.Elapsed++
+
+				clear := exec.Command("clear")
+				clear.Stdout = os.Stdout
+				if err := clear.Run(); err != nil {
+					log.Println(err)
+				}
+
+				fmt.Printf("Feed: %s\nPlaying: %s\nElapsed: %s\n", feedName, e.Title, parseElapsed(e.Elapsed))
 			case <-done:
 				return
 			case s := <-sig:
