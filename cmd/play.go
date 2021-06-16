@@ -21,7 +21,6 @@
 package cmd
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -41,12 +40,12 @@ var playCmd = &cobra.Command{
 			feed, _     = cmd.Flags().GetInt("feed")
 			episodes, _ = cmd.Flags().GetString("episodes")
 			speed, _    = cmd.Flags().GetFloat32("speed")
+			feedTitle   = store.Feeds[feed].Title
 		)
 
-		fmt.Printf("Feed: %s\n", store.Feeds[feed].Title)
 		if episodes == "" {
-			for id, ep := range store.Feeds[feed].Episodes {
-				play(ep, feed, id, speed)
+			for _, ep := range store.Feeds[feed].Episodes {
+				play(ep, feedTitle, speed)
 			}
 			return
 		}
@@ -57,7 +56,9 @@ var playCmd = &cobra.Command{
 
 			// Single eps will always play regardless of mark
 			if id < len(store.Feeds[feed].Episodes) {
-				store.Feeds[feed].Episodes[id].Play(feed, id, speed)
+				store.Feeds[feed].Episodes[id].Play(feedTitle, speed)
+			} else {
+				log.Fatalf("invalid episode id [%d]", id)
 			}
 
 		case epRange.MatchString(episodes):
@@ -71,8 +72,8 @@ var playCmd = &cobra.Command{
 				last = len(store.Feeds[feed].Episodes) - 1
 			}
 
-			for id, ep := range store.Feeds[feed].Episodes[first : last+1] {
-				play(ep, feed, first+id, speed)
+			for _, ep := range store.Feeds[feed].Episodes[first : last+1] {
+				play(ep, feedTitle, speed)
 			}
 
 		case epSet.MatchString(episodes):
@@ -81,7 +82,7 @@ var playCmd = &cobra.Command{
 			for _, i := range set {
 				id, _ := strconv.Atoi(i)
 				if id < len(store.Feeds[feed].Episodes) {
-					play(store.Feeds[feed].Episodes[id], feed, id, speed)
+					play(store.Feeds[feed].Episodes[id], feedTitle, speed)
 				}
 			}
 
@@ -99,9 +100,9 @@ func init() {
 	playCmd.Flags().Float32P("speed", "s", 1.0, "Play speed. Accepts values from 0.01 to 100")
 }
 
-func play(ep *pod.Episode, feed, id int, speed float32) {
+func play(ep *pod.Episode, feedTitle string, speed float32) {
 	if !ep.Played {
-		if err := ep.Play(feed, id, speed); err != nil {
+		if err := ep.Play(feedTitle, speed); err != nil {
 			pod.WriteStore(store)
 			os.Exit(1)
 		}

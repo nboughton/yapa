@@ -81,7 +81,7 @@ func (store *Store) Update() error {
 	for i, f := range store.Feeds {
 		fmt.Printf("Updating %s\n", f.Title)
 		if err := store.Feeds[i].Update(); err != nil {
-			log.Printf("\tUpdate error: %s\n", err)
+			log.Printf("-> Update error: %s\n", err)
 		}
 	}
 
@@ -129,7 +129,7 @@ func (f *Feed) Update() error {
 				f.Episodes[i].Published = ep.Published
 
 			} else if i >= len(f.Episodes) {
-				fmt.Printf("\tNew episode: %s\n", ep.Title)
+				fmt.Printf("-> New episode: %s\n", ep.Title)
 				f.Episodes = append(f.Episodes, ep)
 			}
 		}
@@ -180,8 +180,14 @@ func parseElapsed(inSeconds int) string {
 }
 
 // Play an episode with mpv
-func (e *Episode) Play(feed, id int, speed float32) error {
-	fmt.Printf("Playing: [%d:%d] %s\n", feed, id, e.Title)
+func (e *Episode) Play(feedName string, speed float32) error {
+	clear := exec.Command("clear")
+	clear.Stdout = os.Stdout
+	if err := clear.Run(); err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Feed: %s\nPlaying: %s\n", feedName, e.Title)
 
 	args := []string{
 		"--no-video",
@@ -190,7 +196,7 @@ func (e *Episode) Play(feed, id int, speed float32) error {
 	}
 	if e.Elapsed > 0 {
 		args = append(args, fmt.Sprintf("--start=%d", e.Elapsed))
-		fmt.Printf("\tResuming at %s\n", parseElapsed(e.Elapsed))
+		fmt.Printf("-> Resuming at %s\n", parseElapsed(e.Elapsed))
 	}
 	cmd := exec.Command("mpv", args...)
 
