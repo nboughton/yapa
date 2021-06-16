@@ -184,7 +184,7 @@ func (e *Episode) Play(feedName string, speed float32) error {
 	clear := exec.Command("clear")
 	clear.Stdout = os.Stdout
 	if err := clear.Run(); err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	fmt.Printf("Feed: %s\nPlaying: %s\n", feedName, e.Title)

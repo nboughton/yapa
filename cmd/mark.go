@@ -32,7 +32,7 @@ import (
 // markCmd represents the mark command
 var markCmd = &cobra.Command{
 	Use:   "mark",
-	Short: "Mark toggles episodes played or unplayed",
+	Short: "Mark episodes played/unplayed",
 	//Long: ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		var (
