@@ -5,12 +5,9 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"os/exec"
-	"os/signal"
 	"path/filepath"
 	"sort"
 	"strings"
-	"syscall"
 	"time"
 
 	"github.com/mmcdole/gofeed"
@@ -126,6 +123,7 @@ func (f *Feed) Update() error {
 				f.Episodes[i].Title = ep.Title
 				f.Episodes[i].URL = ep.URL
 				f.Episodes[i].Mp3 = ep.Mp3
+				f.Episodes[i].Length = ep.Length
 				f.Episodes[i].Published = ep.Published
 
 			} else if i >= len(f.Episodes) {
@@ -157,6 +155,7 @@ type Episode struct {
 	Title     string    `json:"title"`
 	URL       string    `json:"url"`
 	Mp3       string    `json:"mp3"`
+	Length    string    `json:"length"`
 	Published time.Time `json:"published"`
 	Played    bool      `json:"played"`
 	Elapsed   int       `json:"elapsed"`
@@ -165,84 +164,7 @@ type Episode struct {
 // String implements the Stringer interface
 func (e *Episode) String() string {
 	return fmt.Sprintf("Title:\t%s\nURL:\t%s\nMP3:\t%s\nUpdated:\t%s\nPlayed:\t%v\nElapsed:\t%s\n",
-		e.Title, e.URL, e.Mp3, e.Published.Format("2006-01-02"), e.Played, parseElapsed(e.Elapsed))
-}
-
-func parseElapsed(inSeconds int) string {
-	minutes := inSeconds / 60
-	seconds := inSeconds % 60
-
-	if minutes > 0 {
-		return fmt.Sprintf("%dm %ds", minutes, seconds)
-	}
-
-	return fmt.Sprintf("%ds", seconds)
-}
-
-// Play an episode with mpv
-func (e *Episode) Play(feedName string, speed float32) error {
-	args := []string{
-		"--no-video",
-		e.Mp3,
-		fmt.Sprintf("--speed=%.2f", speed),
-	}
-	if e.Elapsed > 0 {
-		args = append(args, fmt.Sprintf("--start=%d", e.Elapsed))
-		fmt.Printf("-> Resuming at %s\n", parseElapsed(e.Elapsed))
-		time.Sleep(time.Second * 3)
-	}
-	cmd := exec.Command("mpv", args...)
-
-	if err := cmd.Start(); err != nil {
-		return err
-	}
-
-	// Record time elapsed and catch kill signal
-	done := make(chan bool, 1)
-	defer close(done)
-
-	go func() {
-		tick := time.NewTicker(time.Second)
-		defer tick.Stop()
-
-		sig := make(chan os.Signal, 1)
-		defer close(sig)
-
-		signal.Notify(sig, []os.Signal{syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT}...)
-		defer signal.Stop(sig)
-
-		for {
-			select {
-			case <-tick.C:
-				e.Elapsed++
-
-				clear := exec.Command("clear")
-				clear.Stdout = os.Stdout
-				if err := clear.Run(); err != nil {
-					log.Println(err)
-				}
-
-				fmt.Printf("Feed: %s\nPlaying: %s\nElapsed: %s\n", feedName, e.Title, parseElapsed(e.Elapsed))
-			case <-done:
-				return
-			case s := <-sig:
-				cmd.Process.Signal(s)
-				return
-			}
-		}
-	}()
-
-	if err := cmd.Wait(); err != nil {
-		return err
-	}
-
-	// Tidy up if the epsidoe is played completely
-	done <- true
-
-	e.Played = true
-	e.Elapsed = 0
-
-	return nil
+		e.Title, e.URL, e.Mp3, e.Published.Format("2006-01-02"), e.Played, ParseElapsed(e.Elapsed))
 }
 
 // Episodes is its own type in order to implement a sort interface
@@ -290,6 +212,7 @@ func FromRSS(url string) (Feed, error) {
 			Title:     item.Title,
 			URL:       item.Link,
 			Mp3:       item.Enclosures[0].URL,
+			Length:    item.Enclosures[0].Length,
 			Published: *epPub,
 		})
 	}
@@ -298,4 +221,15 @@ func FromRSS(url string) (Feed, error) {
 	sort.Sort(fd.Episodes)
 
 	return fd, nil
+}
+
+func ParseElapsed(inSeconds int) string {
+	minutes := inSeconds / 60
+	seconds := inSeconds % 60
+
+	if minutes > 0 {
+		return fmt.Sprintf("%dm %ds", minutes, seconds)
+	}
+
+	return fmt.Sprintf("%ds", seconds)
 }

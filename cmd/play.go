@@ -21,10 +21,15 @@
 package cmd
 
 import (
+	"fmt"
 	"log"
 	"os"
+	"os/exec"
+	"os/signal"
 	"strconv"
 	"strings"
+	"syscall"
+	"time"
 
 	"github.com/nboughton/yapa/pod"
 	"github.com/spf13/cobra"
@@ -45,7 +50,7 @@ var playCmd = &cobra.Command{
 
 		if episodes == "" {
 			for _, ep := range store.Feeds[feed].Episodes {
-				play(ep, feedTitle, speed)
+				play(ep, feedTitle, speed, true)
 			}
 			return
 		}
@@ -56,7 +61,7 @@ var playCmd = &cobra.Command{
 
 			// Single eps will always play regardless of mark
 			if id < len(store.Feeds[feed].Episodes) {
-				store.Feeds[feed].Episodes[id].Play(feedTitle, speed)
+				play(store.Feeds[feed].Episodes[id], feedTitle, speed, false)
 			} else {
 				log.Fatalf("invalid episode id [%d]", id)
 			}
@@ -73,7 +78,7 @@ var playCmd = &cobra.Command{
 			}
 
 			for _, ep := range store.Feeds[feed].Episodes[first : last+1] {
-				play(ep, feedTitle, speed)
+				play(ep, feedTitle, speed, true)
 			}
 
 		case epSet.MatchString(episodes):
@@ -82,7 +87,7 @@ var playCmd = &cobra.Command{
 			for _, i := range set {
 				id, _ := strconv.Atoi(i)
 				if id < len(store.Feeds[feed].Episodes) {
-					play(store.Feeds[feed].Episodes[id], feedTitle, speed)
+					play(store.Feeds[feed].Episodes[id], feedTitle, speed, true)
 				}
 			}
 
@@ -100,12 +105,82 @@ func init() {
 	playCmd.Flags().Float32P("speed", "s", 1.0, "Play speed. Accepts values from 0.01 to 100")
 }
 
-func play(ep *pod.Episode, feedTitle string, speed float32) {
-	if !ep.Played {
-		if err := ep.Play(feedTitle, speed); err != nil {
-			pod.WriteStore(store)
-			os.Exit(1)
-		}
-		pod.WriteStore(store)
+func play(ep *pod.Episode, feedTitle string, playSpeed float32, skipPlayed bool) {
+	if skipPlayed && ep.Played {
+		return
 	}
+
+	args := []string{
+		"--no-video",
+		ep.Mp3,
+		fmt.Sprintf("--speed=%.2f", playSpeed),
+	}
+	if ep.Elapsed > 0 {
+		args = append(args, fmt.Sprintf("--start=%d", ep.Elapsed))
+
+		for _, i := range []int{3, 2, 1} {
+			clearTerm()
+			fmt.Printf("Feed: %s\nPlaying: %s\n", feedTitle, ep.Title)
+			fmt.Printf("-> Resuming at %s in %d\n", pod.ParseElapsed(ep.Elapsed), i)
+			time.Sleep(time.Second * 1)
+		}
+	}
+	cmd := exec.Command("mpv", args...)
+
+	if err := cmd.Start(); err != nil {
+		log.Fatal(err)
+	}
+
+	// Record time elapsed and catch kill signal
+	done := make(chan bool, 1)
+	defer close(done)
+
+	go func() {
+		tick := time.NewTicker(time.Second)
+		defer tick.Stop()
+
+		sig := make(chan os.Signal, 1)
+		defer close(sig)
+
+		signal.Notify(sig, []os.Signal{syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT}...)
+		defer signal.Stop(sig)
+
+		for {
+			select {
+			case <-tick.C:
+				ep.Elapsed++
+
+				clearTerm()
+
+				if ep.Length != "" {
+					fmt.Printf("Feed: %s\nPlaying: %s\nElapsed: %s/%s\n", feedTitle, ep.Title, ep.Length, pod.ParseElapsed(ep.Elapsed))
+				} else {
+					fmt.Printf("Feed: %s\nPlaying: %s\nElapsed: %s\n", feedTitle, ep.Title, pod.ParseElapsed(ep.Elapsed))
+				}
+			case <-done:
+				return
+			case s := <-sig:
+				cmd.Process.Signal(s)
+				return
+			}
+		}
+	}()
+
+	if err := cmd.Wait(); err != nil {
+		pod.WriteStore(store)
+		os.Exit(1)
+	}
+
+	// Tidy up if the epsiode is played completely
+	done <- true
+
+	ep.Played = true
+	ep.Elapsed = 0
+	pod.WriteStore(store)
+}
+
+func clearTerm() error {
+	clear := exec.Command("clear")
+	clear.Stdout = os.Stdout
+	return clear.Run()
 }
