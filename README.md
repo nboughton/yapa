@@ -31,7 +31,13 @@ Then create a config file at ~/.config/yapa/config.json
 }
 ```
 
-You can check the usage with 
+Now add a feed:
+
+```
+yapa add <RSS feed url>
+```
+
+For help see: 
 
 ```
 $ yapa -h
