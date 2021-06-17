@@ -27,9 +27,11 @@ Then create a config file at ~/.config/yapa/config.json
 
 ```
 {
-	"store": "~/.config/yapa/store.json"
+	"store": "~/.config/yapa/store.json",
+  "notify": true
 }
 ```
+You can disable desktop notifications by setting notify to false.
 
 Now add a feed:
 

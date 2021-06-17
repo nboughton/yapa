@@ -31,6 +31,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/esiqveland/notify"
+	"github.com/godbus/dbus/v5"
 	"github.com/nboughton/yapa/pod"
 	"github.com/spf13/cobra"
 )
@@ -110,6 +112,10 @@ func play(ep *pod.Episode, feedTitle string, playSpeed float32, skipPlayed bool)
 		return
 	}
 
+	if showNotify {
+		go sendNotify(feedTitle, ep.Title)
+	}
+
 	args := []string{
 		"--no-video",
 		ep.Mp3,
@@ -183,4 +189,32 @@ func clear() error {
 	cmd := exec.Command("clear")
 	cmd.Stdout = os.Stdout
 	return cmd.Run()
+}
+
+func sendNotify(feed, episode string) error {
+	conn, err := dbus.SessionBusPrivate()
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	if err = conn.Auth(nil); err != nil {
+		return err
+	}
+
+	if err = conn.Hello(); err != nil {
+		return err
+	}
+
+	// Send notification
+	_, err = notify.SendNotification(conn, notify.Notification{
+		AppName:       "yapa",
+		ReplacesID:    uint32(0),
+		Summary:       "Podcast",
+		Body:          fmt.Sprintf("%s\n%s\n", feed, episode),
+		Hints:         map[string]dbus.Variant{},
+		ExpireTimeout: 10000,
+	})
+
+	return err
 }

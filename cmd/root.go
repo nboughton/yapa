@@ -34,9 +34,12 @@ import (
 )
 
 var (
-	cfgFile  string
-	store    *pod.Store
-	dateFmt  = "2006-01-02 15:04"
+	cfgFile    string
+	store      *pod.Store
+	showNotify bool
+
+	dateFmt = "2006-01-02 15:04"
+
 	tw       = tabwriter.NewWriter(os.Stdout, 2, 2, 2, ' ', 0)
 	epSingle = regexp.MustCompile(`^\d+$`)
 	epRange  = regexp.MustCompile(`^\d+-\d+$`)
@@ -56,6 +59,8 @@ var rootCmd = &cobra.Command{
 		} else if err != nil && err.Error() == pod.ErrorStoreDoesNotExist {
 			fmt.Println("No store found, creating blank db...")
 		}
+
+		showNotify = viper.GetBool("notify")
 	},
 	// Uncomment the following line if your bare application
 	// has an action associated with it:

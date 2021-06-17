@@ -5,6 +5,8 @@ go 1.16
 require (
 	github.com/PuerkitoBio/goquery v1.6.1 // indirect
 	github.com/andybalholm/cascadia v1.2.0 // indirect
+	github.com/esiqveland/notify v0.9.1
+	github.com/godbus/dbus/v5 v5.0.4
 	github.com/json-iterator/go v1.1.11 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mmcdole/gofeed v1.1.3
