@@ -29,7 +29,7 @@ import (
 // listCmd represents the list command
 var listCmd = &cobra.Command{
 	Use:   "list",
-	Short: "List loaded feeds",
+	Short: "List feeds in store",
 	//Long: ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		feed, _ := cmd.Flags().GetInt("feed")

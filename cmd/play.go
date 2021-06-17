@@ -119,7 +119,7 @@ func play(ep *pod.Episode, feedTitle string, playSpeed float32, skipPlayed bool)
 		args = append(args, fmt.Sprintf("--start=%d", ep.Elapsed))
 
 		for _, i := range []int{3, 2, 1} {
-			clearTerm()
+			clear()
 			fmt.Printf("Feed: %s\nPlaying: %s\n", feedTitle, ep.Title)
 			fmt.Printf("-> Resuming at %s in %d\n", pod.ParseElapsed(ep.Elapsed), i)
 			time.Sleep(time.Second * 1)
@@ -150,7 +150,7 @@ func play(ep *pod.Episode, feedTitle string, playSpeed float32, skipPlayed bool)
 			case <-tick.C:
 				ep.Elapsed++
 
-				clearTerm()
+				clear()
 
 				if ep.Length != "" {
 					fmt.Printf("Feed: %s\nPlaying: %s\nElapsed: %s/%s\n", feedTitle, ep.Title, ep.Length, pod.ParseElapsed(ep.Elapsed))
@@ -179,8 +179,8 @@ func play(ep *pod.Episode, feedTitle string, playSpeed float32, skipPlayed bool)
 	pod.WriteStore(store)
 }
 
-func clearTerm() error {
-	clear := exec.Command("clear")
-	clear.Stdout = os.Stdout
-	return clear.Run()
+func clear() error {
+	cmd := exec.Command("clear")
+	cmd.Stdout = os.Stdout
+	return cmd.Run()
 }

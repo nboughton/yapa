@@ -42,10 +42,10 @@ Usage:
 
 Available Commands:
   add         Load a new RSS feed to the store
-  details     Print details of a feed or episode
+  details     Print details of a feed, episode or range/set of episodes
   help        Help about any command
-  list        List loaded feeds
-  mark        Mark toggles episodes played or unplayed
+  list        List feeds in store
+  mark        Mark an episode or range/set of episodes played/unplayed
   play        Play a feed, episode or range/set of episodes
   update      Update the store
 
@@ -76,8 +76,8 @@ ID  Name                           Eps  Played  Last Updated
 ❯ yapa play -f5
 
 Feed: Stellar Firma
-Episode: Episode 8 - Pillows and Cults
-	Resuming at 12m 33s
+Playing: Episode 8 - Pillows and Cults
+-> Resuming at 12m 33s
 ```
 
 ## Playlists?

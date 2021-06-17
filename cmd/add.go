@@ -32,7 +32,7 @@ import (
 var addCmd = &cobra.Command{
 	Use:   "add",
 	Short: "Load a new RSS feed to the store",
-	//Long: ``,
+	Long:  `add takes a single argument which is an RSS feed url.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Loading ", args[0])
 		feed, err := pod.FromRSS(args[0])

@@ -32,7 +32,7 @@ import (
 // detailsCmd represents the details command
 var detailsCmd = &cobra.Command{
 	Use:   "details",
-	Short: "Print details of a feed or episode",
+	Short: "Print details of a feed, episode or range/set of episodes",
 	//Long: ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		var (
