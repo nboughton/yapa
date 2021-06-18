@@ -22,7 +22,9 @@ package cmd
 
 import (
 	"fmt"
+	"regexp"
 
+	"github.com/nboughton/yapa/pod"
 	"github.com/spf13/cobra"
 )
 
@@ -32,7 +34,14 @@ var listCmd = &cobra.Command{
 	Short: "List feeds in store",
 	//Long: ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		feed, _ := cmd.Flags().GetInt("feed")
+		var (
+			feed, _   = cmd.Flags().GetInt("feed")
+			filter, _ = cmd.Flags().GetString("filter")
+			regex     = regexp.MustCompile(filter)
+			save, _   = cmd.Flags().GetString("save")
+			playlist  []int
+		)
+
 		if feed < 0 {
 			fmt.Fprint(tw, "ID\tName\tEps\tPlayed\tLast Updated\n")
 			for i, feed := range store.Feeds {
@@ -44,13 +53,27 @@ var listCmd = &cobra.Command{
 
 		fmt.Fprint(tw, "ID\tName\tPlayed\tPub Date\n")
 		for i, ep := range store.Feeds[feed].Episodes {
-			if ep.Played {
-				fmt.Fprintf(tw, "%d\t%s\tYes\t%s\n", i, ep.Title, ep.Published.Format(dateFmt))
-			} else {
-				fmt.Fprintf(tw, "%d\t%s\tNo\t%s\n", i, ep.Title, ep.Published.Format(dateFmt))
+			if regex.MatchString(ep.Title) {
+				fmt.Fprintf(tw, "%d\t%s\t%s\t%s\n", i, ep.Title, played(ep.Played), ep.Published.Format(dateFmt))
+				if save != "" {
+					playlist = append(playlist, i)
+				}
 			}
+
 		}
 		tw.Flush()
+
+		// Save the playlist
+		if save != "" {
+			// Check the map exists
+			if store.Feeds[feed].Playlists == nil {
+				store.Feeds[feed].Playlists = make(map[string][]int)
+			}
+			store.Feeds[feed].Playlists[save] = playlist
+			pod.WriteStore(store)
+
+			fmt.Println("Playlist saved")
+		}
 	},
 }
 
@@ -58,4 +81,14 @@ func init() {
 	rootCmd.AddCommand(listCmd)
 
 	listCmd.Flags().IntP("feed", "f", -1, "List episodes for feed")
+	listCmd.Flags().StringP("filter", "r", ".*", "Filter episodes with a regular expression. See the RE2 specification for details. Use single quotes to wrap your expression.")
+	listCmd.Flags().StringP("save", "s", "", "Save list as playlist. You must specify a feed with -f to use this. Playlists are saved as part of the feed record in the store.")
+}
+
+func played(p bool) string {
+	if p {
+		return "Yes"
+	}
+
+	return "No"
 }

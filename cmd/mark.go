@@ -33,17 +33,42 @@ import (
 var markCmd = &cobra.Command{
 	Use:   "mark",
 	Short: "Mark an episode or range/set of episodes played/unplayed",
-	//Long: ``,
+	Long:  `If -p or -u are not specified then any episodes affected will be toggled.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		var (
 			feed, _     = cmd.Flags().GetInt("feed")
 			episodes, _ = cmd.Flags().GetString("episodes")
 			played, _   = cmd.Flags().GetBool("played")
 			unplayed, _ = cmd.Flags().GetBool("unplayed")
+			playlist, _ = cmd.Flags().GetString("playlist")
 		)
 
 		if feed == -1 {
 			log.Fatal("No feed selected")
+		}
+
+		if playlist != "" {
+			list, ok := store.Feeds[feed].Playlists[playlist]
+			if ok {
+				for _, id := range list {
+					if id < len(store.Feeds[feed].Episodes) {
+						switch {
+						case played:
+							store.Feeds[feed].Episodes[id].Played = true
+						case unplayed:
+							store.Feeds[feed].Episodes[id].Played = false
+						default:
+							store.Feeds[feed].Episodes[id].Played = !store.Feeds[feed].Episodes[id].Played
+						}
+
+						store.Feeds[feed].Episodes[id].Elapsed = 0
+					}
+				}
+				pod.WriteStore(store)
+				return
+			} else {
+				log.Fatalf("invalid playlist: [%s]", playlist)
+			}
 		}
 
 		switch {
@@ -120,6 +145,7 @@ func init() {
 
 	markCmd.Flags().IntP("feed", "f", -1, "Feed id to mark")
 	markCmd.Flags().StringP("episodes", "e", "", "Episode or set of episodes to mark. Use a single id, a hyphenated pair of ids (0-4), or a comma separated set of ids (0,5,3). Sets cannot have spaces.")
+	markCmd.Flags().StringP("playlist", "l", "", "Mark a playlist. This overrides the --episodes/-e flag")
 	markCmd.Flags().BoolP("played", "p", false, "Mark episodes played")
 	markCmd.Flags().BoolP("unplayed", "u", false, "Mark episodes unplayed")
 }

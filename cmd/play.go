@@ -48,7 +48,20 @@ var playCmd = &cobra.Command{
 			episodes, _ = cmd.Flags().GetString("episodes")
 			speed, _    = cmd.Flags().GetFloat32("speed")
 			feedTitle   = store.Feeds[feed].Title
+			playlist, _ = cmd.Flags().GetString("playlist")
 		)
+
+		if playlist != "" {
+			list, ok := store.Feeds[feed].Playlists[playlist]
+			if ok {
+				for _, id := range list {
+					play(store.Feeds[feed].Episodes[id], feedTitle, speed, true)
+				}
+				return
+			} else {
+				log.Fatalf("invalid playlist: [%s]", playlist)
+			}
+		}
 
 		if episodes == "" {
 			for _, ep := range store.Feeds[feed].Episodes {
@@ -104,6 +117,7 @@ func init() {
 
 	playCmd.Flags().IntP("feed", "f", 0, "Play feed, by default episodes marked played are ignored")
 	playCmd.Flags().StringP("episodes", "e", "", "Episode or set of episodes to play. Use a single id, a hyphenated pair of ids (0-4), or a comma separated set of ids (0,5,3). Sets cannot have spaces.")
+	playCmd.Flags().StringP("playlist", "p", "", "Play a saved playlist. Use the details subcommand to see if a feed has any saved lists.")
 	playCmd.Flags().Float32P("speed", "s", 1.0, "Play speed. Accepts values from 0.01 to 100")
 }
 

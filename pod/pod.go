@@ -88,11 +88,12 @@ func (store *Store) Update() error {
 
 // Feed data
 type Feed struct {
-	Title    string    `json:"title"`
-	URL      string    `json:"url"`
-	RSS      string    `json:"rss"`
-	Updated  time.Time `json:"updated"`
-	Episodes Episodes  `json:"episodes"`
+	Title     string           `json:"title"`
+	URL       string           `json:"url"`
+	RSS       string           `json:"rss"`
+	Updated   time.Time        `json:"updated"`
+	Episodes  Episodes         `json:"episodes"`
+	Playlists map[string][]int `json:"playlists"`
 }
 
 // Played episodes
@@ -138,8 +139,16 @@ func (f *Feed) Update() error {
 
 // String implements the Stringer interface
 func (f *Feed) String() string {
-	return fmt.Sprintf("Title:\t%s\nURL:\t%s\nRSS:\t%s\nUpdated:\t%s\nEpisodes:\t%d/%d\n",
-		f.Title, f.URL, f.RSS, f.Updated.Format("2006-01-02"), len(f.Episodes), f.Played())
+	return fmt.Sprintf("Title:\t%s\nURL:\t%s\nRSS:\t%s\nUpdated:\t%s\nEpisodes:\t%d/%d\nPlaylists:\t%s\n",
+		f.Title, f.URL, f.RSS, f.Updated.Format("2006-01-02"), len(f.Episodes), f.Played(), listKeys(f.Playlists))
+}
+
+func listKeys(in map[string][]int) string {
+	var k []string
+	for key := range in {
+		k = append(k, key)
+	}
+	return strings.Join(k, ", ")
 }
 
 // Feed list sortable by most reent update
