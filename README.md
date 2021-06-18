@@ -27,7 +27,7 @@ Then create a config file at ~/.config/yapa/config.json
 
 ```
 {
-	"store": "~/.config/yapa/store.json",
+  "store": "~/.config/yapa/store.json",
   "notify": true
 }
 ```
@@ -96,7 +96,7 @@ You can filter episodes with the list command like so:
 yapa list -f0 -r '^regex$'
 ```
 
-The filter option (-r/--filter) takes a string that should be an RE2 compatible regular expression. Once your happy with the filtered list you can add the -s/--save flag like so:
+The filter option (-r/--filter) takes a string that should be an RE2 compatible regular expression. Once you're happy with the filtered list you can add the -s/--save flag like so:
 
 ```
 yapa list -f0 -r '^regex$' -s 'Playlist Name'
