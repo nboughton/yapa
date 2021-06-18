@@ -88,20 +88,28 @@ Playing: Episode 8 - Pillows and Cults
 -> Resuming at 12m 33s
 ```
 
-## Playlists?
+## Playlists
 
-Well... Sort of? I make playlists like so:
-
-```
-$ yapa list -f6 | grep term | awk '{print $1}' | paste -sd ','
-
-248,249,250,251,252,253,254
-```
-
-Which gives you a comma separated list of episodes that match your term. Leave out the awk and paste pipes to see the episode list so you can refine your grep. You can then play just those episodes with:
+You can filter episodes with the list command like so:
 
 ```
-yapa play -f6 -e248,249,250,251,252,253,254
+yapa list -f0 -r '^regex$'
 ```
 
-Played episodes will be ignored by default and yapa should just pick up wherever you left off.
+The filter option (-r/--filter) takes a string that should be an RE2 compatible regular expression. Once your happy with the filtered list you can add the -s/--save flag like so:
+
+```
+yapa list -f0 -r '^regex$' -s 'Playlist Name'
+```
+
+You can then play that list later with:
+
+```
+yapa play -f0 -p'Playlist Name'
+```
+
+You can check for saved playlists with the details command:
+
+```
+yapa details -f0
+```
