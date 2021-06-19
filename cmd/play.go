@@ -169,14 +169,8 @@ func play(ep *pod.Episode, feedTitle string, playSpeed float32, skipPlayed bool)
 			select {
 			case <-tick.C:
 				ep.Elapsed++
-
 				clear()
-
-				if ep.Length != "" {
-					fmt.Printf("Feed: %s\nPlaying: %s\nElapsed: %s/%s\n", feedTitle, ep.Title, ep.Length, pod.ParseElapsed(ep.Elapsed))
-				} else {
-					fmt.Printf("Feed: %s\nPlaying: %s\nElapsed: %s\n", feedTitle, ep.Title, pod.ParseElapsed(ep.Elapsed))
-				}
+				fmt.Printf("Feed: %s\nPlaying: %s\nElapsed: %s\n", feedTitle, ep.Title, pod.ParseElapsed(ep.Elapsed))
 			case <-done:
 				return
 			case s := <-sig:
