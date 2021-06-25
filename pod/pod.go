@@ -217,6 +217,10 @@ func FromRSS(url string) (Feed, error) {
 			epPub = item.UpdatedParsed
 		}
 
+		if len(item.Enclosures) == 0 {
+			return fd, fmt.Errorf("invalid feed; no enclosures (i.e mp3 link) found")
+		}
+
 		fd.Episodes = append(fd.Episodes, &Episode{
 			Title:     item.Title,
 			URL:       item.Link,

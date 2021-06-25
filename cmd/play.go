@@ -140,8 +140,8 @@ func play(ep *pod.Episode, feedTitle string, playSpeed float32, skipPlayed bool)
 
 		for _, i := range []int{3, 2, 1} {
 			clear()
-			fmt.Printf("Feed: %s\nPlaying: %s\n", feedTitle, ep.Title)
-			fmt.Printf("-> Resuming at %s in %d\n", pod.ParseElapsed(ep.Elapsed), i)
+			fmt.Printf("Feed: %s\nPlaying: %s\n-> Resuming at %s in %d",
+				feedTitle, ep.Title, pod.ParseElapsed(ep.Elapsed), i)
 			time.Sleep(time.Second * 1)
 		}
 	}
@@ -170,7 +170,8 @@ func play(ep *pod.Episode, feedTitle string, playSpeed float32, skipPlayed bool)
 			case <-tick.C:
 				ep.Elapsed++
 				clear()
-				fmt.Printf("Feed: %s\nPlaying: %s\nElapsed: %s\n", feedTitle, ep.Title, pod.ParseElapsed(ep.Elapsed))
+				fmt.Printf("Feed: %s\nPlaying: %s\nElapsed: %s",
+					feedTitle, ep.Title, pod.ParseElapsed(ep.Elapsed))
 			case <-done:
 				return
 			case s := <-sig:
