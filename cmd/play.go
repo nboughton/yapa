@@ -117,7 +117,7 @@ func init() {
 
 	playCmd.Flags().IntP("feed", "f", 0, "Play feed, by default episodes marked played are ignored")
 	playCmd.Flags().StringP("episodes", "e", "", "Episode or set of episodes to play. Use a single id, a hyphenated pair of ids (0-4), or a comma separated set of ids (0,5,3). Sets cannot have spaces.")
-	playCmd.Flags().StringP("playlist", "p", "", "Play a saved playlist. Use the details subcommand to see if a feed has any saved lists.")
+	playCmd.Flags().StringP("playlist", "l", "", "Play a saved playlist. Use the details subcommand to see if a feed has any saved lists.")
 	playCmd.Flags().Float32P("speed", "s", 1.0, "Play speed. Accepts values from 0.01 to 100")
 }
 
@@ -140,8 +140,9 @@ func play(ep *pod.Episode, feedTitle string, playSpeed float32, skipPlayed bool)
 
 		for _, i := range []int{3, 2, 1} {
 			clear()
-			fmt.Printf("Feed: %s\nPlaying: %s\n-> Resuming at %s in %d",
+			fmt.Fprintf(tw, "Feed:\t%s\nPlaying:\t%s\n-> Resuming at %s in %d",
 				feedTitle, ep.Title, pod.ParseElapsed(ep.Elapsed), i)
+			tw.Flush()
 			time.Sleep(time.Second * 1)
 		}
 	}
@@ -170,8 +171,9 @@ func play(ep *pod.Episode, feedTitle string, playSpeed float32, skipPlayed bool)
 			case <-tick.C:
 				ep.Elapsed++
 				clear()
-				fmt.Printf("Feed: %s\nPlaying: %s\nElapsed: %s",
+				fmt.Fprintf(tw, "Feed:\t%s\nPlaying:\t%s\nElapsed:\t%s",
 					feedTitle, ep.Title, pod.ParseElapsed(ep.Elapsed))
+				tw.Flush()
 			case <-done:
 				return
 			case s := <-sig:
