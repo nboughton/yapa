@@ -59,7 +59,8 @@ var playCmd = &cobra.Command{
 				}
 				return
 			} else {
-				log.Fatalf("invalid playlist: [%s]", playlist)
+				fmt.Printf("invalid playlist: [%s]", playlist)
+				return
 			}
 		}
 
@@ -78,7 +79,8 @@ var playCmd = &cobra.Command{
 			if id < len(store.Feeds[feed].Episodes) {
 				play(store.Feeds[feed].Episodes[id], feedTitle, speed, false)
 			} else {
-				log.Fatalf("invalid episode id [%d]", id)
+				fmt.Printf("invalid episode id [%d]", id)
+				return
 			}
 
 		case epRange.MatchString(episodes):
@@ -107,7 +109,8 @@ var playCmd = &cobra.Command{
 			}
 
 		default:
-			log.Fatalf("Bad criteria: %s", episodes)
+			fmt.Printf("Bad criteria: %s", episodes)
+			return
 		}
 	},
 }

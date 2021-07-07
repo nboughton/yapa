@@ -21,7 +21,7 @@
 package cmd
 
 import (
-	"log"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -44,7 +44,8 @@ var markCmd = &cobra.Command{
 		)
 
 		if feed == -1 {
-			log.Fatal("No feed selected")
+			fmt.Println("No feed selected")
+			return
 		}
 
 		if playlist != "" {
@@ -67,7 +68,8 @@ var markCmd = &cobra.Command{
 				pod.WriteStore(store)
 				return
 			} else {
-				log.Fatalf("invalid playlist: [%s]", playlist)
+				fmt.Printf("invalid playlist: [%s]", playlist)
+				return
 			}
 		}
 
@@ -135,7 +137,8 @@ var markCmd = &cobra.Command{
 			pod.WriteStore(store)
 
 		default:
-			log.Fatalf("Bad criteria: %s", episodes)
+			fmt.Printf("Bad criteria: %s", episodes)
+			return
 		}
 	},
 }

@@ -22,7 +22,6 @@ package cmd
 
 import (
 	"fmt"
-	"log"
 	"strconv"
 	"strings"
 
@@ -80,7 +79,8 @@ var detailsCmd = &cobra.Command{
 			}
 
 		default:
-			log.Fatalf("Bad criteria: %s", episodes)
+			fmt.Printf("Bad criteria: %s", episodes)
+			return
 		}
 		tw.Flush()
 	},
