@@ -10,6 +10,10 @@ yapa automatically sorts episodes from oldest to newest and, by default, plays t
 
 Yapa is *very* basic. It stores feed data as a JSON file that is read when the yapa command is invoked and written on any change. Don't try to update the store while yapa is already playing as the changes will be overwritten when the store is updated after each episode.
 
+## NOTE
+
+V0.8.0 introduced some changes to the store format so if you've updated from an older version please update the store before trying to do anything else.
+
 ## Install
 
 For Arch Linux:
