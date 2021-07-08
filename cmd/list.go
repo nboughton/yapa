@@ -22,7 +22,6 @@ package cmd
 
 import (
 	"fmt"
-	"regexp"
 
 	"github.com/nboughton/yapa/pod"
 	"github.com/spf13/cobra"
@@ -31,14 +30,15 @@ import (
 // listCmd represents the list command
 var listCmd = &cobra.Command{
 	Use:   "list",
-	Short: "List feeds in store",
-	//Long: ``,
+	Short: "List feeds/episodes in store",
+	Long:  `List output can be marked as played/unplayed, and saved as playlists`,
 	Run: func(cmd *cobra.Command, args []string) {
 		var (
 			feed, _         = cmd.Flags().GetInt("feed")
+			episodes, _     = cmd.Flags().GetString("episodes")
 			filter, _       = cmd.Flags().GetString("filter")
-			regex           = regexp.MustCompile(filter)
 			save, _         = cmd.Flags().GetString("save")
+			details, _      = cmd.Flags().GetBool("details")
 			markPlayed, _   = cmd.Flags().GetBool("mark-played")
 			markUnplayed, _ = cmd.Flags().GetBool("mark-unplayed")
 			playlist        []int
@@ -52,34 +52,57 @@ var listCmd = &cobra.Command{
 		if feed < 0 {
 			fmt.Fprint(tw, "ID\tName\tEps\tPlayed\tLast Updated\n")
 			for i, feed := range store.Feeds {
-				fmt.Fprintf(tw, "%d\t%s\t%d\t%d\t%s\n", i, feed.Title, len(feed.Episodes), feed.Played(), feed.Updated.Format(dateFmt))
+				if details {
+					fmt.Println(feed.String())
+				} else {
+					fmt.Fprintf(tw, "%d\t%s\t%d\t%d\t%s\n", i, feed.Title, len(feed.Episodes), feed.Played(), feed.Updated.Format(dateFmt))
+				}
 			}
-			tw.Flush()
+
+			if !details {
+				tw.Flush()
+			}
 			return
 		}
 
+		// List episodes from selected feed, apply mark/print full details if flagged
 		fmt.Fprint(tw, "ID\tName\tPlayed\tPub Date\n")
-		for i, ep := range store.Feeds[feed].Episodes {
-			if regex.MatchString(ep.Title) {
-				if markPlayed {
-					store.Feeds[feed].Episodes[i].Played = true
-				}
-				if markUnplayed {
-					store.Feeds[feed].Episodes[i].Played = false
-				}
-				fmt.Fprintf(tw, "%d\t%s\t%s\t%s\n", i, ep.Title, played(ep.Played), ep.Published.Format(dateFmt))
-				if save != "" {
-					playlist = append(playlist, i)
-				}
+		var eps pod.Episodes
+		switch {
+		case filter != ".*":
+			eps = store.Feeds[feed].Filter(filter)
+		case episodes != "":
+			eps = store.Feeds[feed].Set(episodes)
+		default:
+			eps = store.Feeds[feed].Episodes
+		}
+
+		for _, ep := range eps {
+			if markPlayed {
+				ep.Played = true
+			}
+			if markUnplayed {
+				ep.Played = false
+			}
+			if details {
+				fmt.Println(ep)
+			} else {
+				fmt.Fprintf(tw, "%d\t%s\t%s\t%s\n", ep.ID, ep.Title, played(ep.Played), ep.Published.Format(dateFmt))
+			}
+			if save != "" {
+				playlist = append(playlist, ep.ID)
 			}
 		}
+
 		// Write changes to store
 		if markPlayed || markUnplayed {
 			pod.WriteStore(store)
 		}
 
 		// Print list text
-		tw.Flush()
+		if !details {
+			tw.Flush()
+		}
 
 		// Save the playlist
 		if save != "" {
@@ -100,7 +123,9 @@ func init() {
 
 	listCmd.Flags().IntP("feed", "f", -1, "List episodes for feed")
 	listCmd.Flags().StringP("filter", "r", ".*", "Filter episodes with a regular expression. See the RE2 specification for details. Use single quotes to wrap your expression.")
+	listCmd.Flags().StringP("episodes", "e", "", "Filter episodes as a range (0-10) or a comma separated set (3,5,6). This cannot contain spaces and is overridden by the -r flag.")
 	listCmd.Flags().StringP("save", "s", "", "Save list as playlist. You must specify a feed with -f to use this. Playlists are saved as part of the feed record in the store.")
+	listCmd.Flags().BoolP("details", "d", false, "Print full details of selected feed/episode.")
 	listCmd.Flags().BoolP("mark-played", "p", false, "Mark the listed episodes as played. Only works in conjunction with the -f flag.")
 	listCmd.Flags().BoolP("mark-unplayed", "u", false, "Mark the listed episodes as unplayed. Only works in conjunction with the -f flag.")
 }

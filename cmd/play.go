@@ -26,8 +26,6 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
-	"strconv"
-	"strings"
 	"syscall"
 	"time"
 
@@ -45,7 +43,6 @@ var playCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		var (
 			feed, _     = cmd.Flags().GetInt("feed")
-			episodes, _ = cmd.Flags().GetString("episodes")
 			speed, _    = cmd.Flags().GetFloat32("speed")
 			feedTitle   = store.Feeds[feed].Title
 			playlist, _ = cmd.Flags().GetString("playlist")
@@ -64,53 +61,8 @@ var playCmd = &cobra.Command{
 			}
 		}
 
-		if episodes == "" {
-			for _, ep := range store.Feeds[feed].Episodes {
-				play(ep, feedTitle, speed, true)
-			}
-			return
-		}
-
-		switch {
-		case epSingle.MatchString(episodes):
-			id, _ := strconv.Atoi(episodes)
-
-			// Single eps will always play regardless of mark
-			if id < len(store.Feeds[feed].Episodes) {
-				play(store.Feeds[feed].Episodes[id], feedTitle, speed, false)
-			} else {
-				fmt.Printf("invalid episode id [%d]", id)
-				return
-			}
-
-		case epRange.MatchString(episodes):
-			var (
-				set      = strings.Split(episodes, "-")
-				first, _ = strconv.Atoi(set[0])
-				last, _  = strconv.Atoi(set[1])
-			)
-
-			if last+1 > len(store.Feeds[feed].Episodes) {
-				last = len(store.Feeds[feed].Episodes) - 1
-			}
-
-			for _, ep := range store.Feeds[feed].Episodes[first : last+1] {
-				play(ep, feedTitle, speed, true)
-			}
-
-		case epSet.MatchString(episodes):
-			set := strings.Split(episodes, ",")
-
-			for _, i := range set {
-				id, _ := strconv.Atoi(i)
-				if id < len(store.Feeds[feed].Episodes) {
-					play(store.Feeds[feed].Episodes[id], feedTitle, speed, true)
-				}
-			}
-
-		default:
-			fmt.Printf("Bad criteria: %s", episodes)
-			return
+		for _, ep := range store.Feeds[feed].Episodes {
+			play(ep, feedTitle, speed, true)
 		}
 	},
 }
@@ -119,7 +71,6 @@ func init() {
 	rootCmd.AddCommand(playCmd)
 
 	playCmd.Flags().IntP("feed", "f", 0, "Play feed, by default episodes marked played are ignored")
-	playCmd.Flags().StringP("episodes", "e", "", "Episode or set of episodes to play. Use a single id, a hyphenated pair of ids (0-4), or a comma separated set of ids (0,5,3). Sets cannot have spaces.")
 	playCmd.Flags().StringP("playlist", "l", "", "Play a saved playlist. Use the details subcommand to see if a feed has any saved lists.")
 	playCmd.Flags().Float32P("speed", "s", 1.0, "Play speed. Accepts values from 0.01 to 100")
 }

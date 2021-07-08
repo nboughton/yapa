@@ -6,7 +6,9 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -107,6 +109,56 @@ func (f *Feed) Played() int {
 	return n
 }
 
+// Filter list by regular expression (see RE2 spec for syntax)
+func (f *Feed) Filter(e string) Episodes {
+	var (
+		out = Episodes{}
+		r   = regexp.MustCompile(e)
+	)
+
+	for _, ep := range f.Episodes {
+		if r.MatchString(ep.Title) {
+			out = append(out, ep)
+		}
+	}
+
+	return out
+}
+
+// Set or range of episodes, a range should match a pattern like 0-100
+// a range should be a comma separated list (0,34,96) with no spaces
+func (f *Feed) Set(s string) Episodes {
+	var (
+		set = strings.Split(s, ",")
+		out Episodes
+	)
+
+	switch {
+	case strings.Contains(s, ","):
+		for _, i := range set {
+			id, _ := strconv.Atoi(i)
+			if id < len(f.Episodes) {
+				out = append(out, f.Episodes[id])
+			}
+		}
+
+	case strings.Contains(s, "-"):
+		var (
+			set      = strings.Split(s, "-")
+			first, _ = strconv.Atoi(set[0])
+			last, _  = strconv.Atoi(set[1])
+		)
+
+		if last+1 > len(f.Episodes) {
+			last = len(f.Episodes) - 1
+		}
+
+		out = f.Episodes[first : last+1]
+	}
+
+	return out
+}
+
 // Update the feed
 func (f *Feed) Update() error {
 	latest, err := FromRSS(f.RSS)
@@ -116,23 +168,24 @@ func (f *Feed) Update() error {
 
 	// Check if the latest publish date is different.
 	// Since we sort oldest to newest by default new episodes should only appear at the end
-	if latest.Updated.After(f.Updated) || len(latest.Episodes) != len(f.Episodes) {
-		f.Updated = latest.Updated
+	//if latest.Updated.After(f.Updated) || len(latest.Episodes) != len(f.Episodes) {
+	f.Updated = latest.Updated
 
-		for i, ep := range latest.Episodes {
-			if i < len(f.Episodes) {
-				f.Episodes[i].Title = ep.Title
-				f.Episodes[i].URL = ep.URL
-				f.Episodes[i].Mp3 = ep.Mp3
-				f.Episodes[i].Length = ep.Length
-				f.Episodes[i].Published = ep.Published
+	for i, ep := range latest.Episodes {
+		if i < len(f.Episodes) {
+			f.Episodes[i].ID = ep.ID
+			f.Episodes[i].Title = ep.Title
+			f.Episodes[i].URL = ep.URL
+			f.Episodes[i].Mp3 = ep.Mp3
+			f.Episodes[i].Length = ep.Length
+			f.Episodes[i].Published = ep.Published
 
-			} else if i >= len(f.Episodes) {
-				fmt.Printf("-> New episode: %s\n", ep.Title)
-				f.Episodes = append(f.Episodes, ep)
-			}
+		} else if i >= len(f.Episodes) {
+			fmt.Printf("-> New episode: %s\n", ep.Title)
+			f.Episodes = append(f.Episodes, ep)
 		}
 	}
+	//}
 
 	return nil
 }
@@ -161,6 +214,7 @@ func (f Feeds) Swap(i, j int)      { f[i], f[j] = f[j], f[i] }
 
 // Episode data
 type Episode struct {
+	ID        int       `json:"id"`
 	Title     string    `json:"title"`
 	URL       string    `json:"url"`
 	Mp3       string    `json:"mp3"`
@@ -183,6 +237,13 @@ type Episodes []*Episode
 func (e Episodes) Len() int           { return len(e) }
 func (e Episodes) Less(i, j int) bool { return e[i].Published.Before(e[j].Published) }
 func (e Episodes) Swap(i, j int)      { e[i], e[j] = e[j], e[i] }
+
+// Set episode IDs post-sort
+func (e Episodes) setIDs() {
+	for i, ep := range e {
+		ep.ID = i
+	}
+}
 
 // FromRSS creates a new Feed obj by parsing data from an rss url
 func FromRSS(url string) (Feed, error) {
@@ -232,7 +293,7 @@ func FromRSS(url string) (Feed, error) {
 
 	// Default sort by oldest first
 	sort.Sort(fd.Episodes)
-
+	fd.Episodes.setIDs()
 	return fd, nil
 }
 
@@ -240,7 +301,7 @@ func ParseElapsed(inSeconds int) string {
 	minutes := inSeconds / 60
 	seconds := inSeconds % 60
 
-	if minutes > 0 {
+	if minutes >= 0 {
 		return fmt.Sprintf("%dm %ds", minutes, seconds)
 	}
 
