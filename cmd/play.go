@@ -38,7 +38,7 @@ import (
 // playCmd represents the play command
 var playCmd = &cobra.Command{
 	Use:   "play",
-	Short: "Play a feed, episode or range/set of episodes",
+	Short: "Play a feed or playlist",
 	//Long: ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		var (

@@ -56,7 +56,7 @@ Available Commands:
   add         Load a new RSS feed to the store
   help        Help about any command
   list        List feeds/episodes in store
-  play        Play a feed, episode or range/set of episodes
+  play        Play a feed or playlist
   update      Update the store
 
 Flags:
