@@ -50,10 +50,8 @@ Usage:
 
 Available Commands:
   add         Load a new RSS feed to the store
-  details     Print details of a feed, episode or range/set of episodes
   help        Help about any command
-  list        List feeds in store
-  mark        Mark an episode or range/set of episodes played/unplayed
+  list        List feeds/episodes in store
   play        Play a feed, episode or range/set of episodes
   update      Update the store
 
@@ -108,8 +106,8 @@ You can then play that list later with:
 yapa play -f0 -p'Playlist Name'
 ```
 
-You can check for saved playlists with the details command:
+You can check for saved playlists by adding -l in conjunction with the details (-d) flag:
 
 ```
-yapa details -f0
+yapa list -f0 -d -l
 ```

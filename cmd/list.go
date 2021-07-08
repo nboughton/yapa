@@ -38,6 +38,7 @@ var listCmd = &cobra.Command{
 			episodes, _     = cmd.Flags().GetString("episodes")
 			filter, _       = cmd.Flags().GetString("filter")
 			save, _         = cmd.Flags().GetString("save")
+			playlists, _    = cmd.Flags().GetBool("playlists")
 			details, _      = cmd.Flags().GetBool("details")
 			markPlayed, _   = cmd.Flags().GetBool("mark-played")
 			markUnplayed, _ = cmd.Flags().GetBool("mark-unplayed")
@@ -62,6 +63,12 @@ var listCmd = &cobra.Command{
 			if !details {
 				tw.Flush()
 			}
+			return
+		}
+
+		if playlists {
+			fmt.Fprintln(tw, store.Feeds[feed].String())
+			tw.Flush()
 			return
 		}
 
@@ -125,6 +132,7 @@ func init() {
 	listCmd.Flags().StringP("filter", "r", ".*", "Filter episodes with a regular expression. See the RE2 specification for details. Use single quotes to wrap your expression.")
 	listCmd.Flags().StringP("episodes", "e", "", "Filter episodes as a range (0-10) or a comma separated set (3,5,6). This cannot contain spaces and is overridden by the -r flag.")
 	listCmd.Flags().StringP("save", "s", "", "Save list as playlist. You must specify a feed with -f to use this. Playlists are saved as part of the feed record in the store.")
+	listCmd.Flags().BoolP("playlists", "l", false, "Only print details/playlists for selected feed.")
 	listCmd.Flags().BoolP("details", "d", false, "Print full details of selected feed/episode.")
 	listCmd.Flags().BoolP("mark-played", "p", false, "Mark the listed episodes as played. Only works in conjunction with the -f flag.")
 	listCmd.Flags().BoolP("mark-unplayed", "u", false, "Mark the listed episodes as unplayed. Only works in conjunction with the -f flag.")
