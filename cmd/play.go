@@ -84,6 +84,10 @@ func play(ep *pod.Episode, feedTitle string, playSpeed float32, skipPlayed bool)
 		go sendNotify(feedTitle, ep.Title)
 	}
 
+	// Hide cursor while playing
+	tput(hideCursor)
+	defer tput(showCursor)
+
 	args := []string{
 		"--no-video",
 		ep.Mp3,
@@ -139,7 +143,8 @@ func play(ep *pod.Episode, feedTitle string, playSpeed float32, skipPlayed bool)
 
 	if err := cmd.Wait(); err != nil {
 		pod.WriteStore(store)
-		os.Exit(1)
+		tput(showCursor)
+		os.Exit(0)
 	}
 
 	// Tidy up if the epsiode is played completely
@@ -154,6 +159,13 @@ func clear() error {
 	cmd := exec.Command("clear")
 	cmd.Stdout = os.Stdout
 	return cmd.Run()
+}
+
+func tput(arg string) error {
+	cmd := exec.Command("tput", arg)
+	cmd.Stdout = os.Stdout
+	err := cmd.Run()
+	return err
 }
 
 func sendNotify(feed, episode string) error {
