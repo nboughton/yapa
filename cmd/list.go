@@ -74,6 +74,11 @@ var listCmd = &cobra.Command{
 			return
 		}
 
+		if err := validFeed(feed); err != nil {
+			fmt.Println(err)
+			return
+		}
+
 		// No feed specified, print basic summary of all feeds
 		if feed < 0 {
 			if !details {

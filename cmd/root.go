@@ -115,6 +115,15 @@ func initConfig() {
 	}
 }
 
+// Check feed id
+func validFeed(id int) error {
+	if id >= len(store.Feeds) {
+		return fmt.Errorf("no feed with id %d", id)
+	}
+
+	return nil
+}
+
 // clear terminal screen
 func clear() error {
 	cmd := exec.Command("clear")

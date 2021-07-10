@@ -46,6 +46,11 @@ var playCmd = &cobra.Command{
 			playlist, _ = cmd.Flags().GetString("playlist")
 		)
 
+		if err := validFeed(feed); err != nil {
+			fmt.Println(err)
+			return
+		}
+
 		if playlist != "" {
 			list, ok := store.Feeds[feed].Playlists[playlist]
 			if ok {
