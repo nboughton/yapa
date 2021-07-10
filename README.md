@@ -110,10 +110,10 @@ You can then play that list later with:
 yapa play -f0 -p'Playlist Name'
 ```
 
-You can check for saved playlists by using the --summary (-m) flag in conjunction with the details (-d) flag:
+You can check for saved playlists by using the --summary (-m) flag:
 
 ```
-yapa list -f11 -d -m
+yapa list -f11 -m
 
 Title:     D&D is For Nerds
 URL:       http://www.sanspantsradio.com/dnd-is-for-nerds/
