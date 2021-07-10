@@ -159,6 +159,18 @@ func (f *Feed) Set(s string) Episodes {
 	return out
 }
 
+// Playlist of episodes
+func (f *Feed) Playlist(s string) Episodes {
+	var out Episodes
+	if list, ok := f.Playlists[s]; ok {
+		for _, id := range list {
+			out = append(out, f.Episodes[id])
+		}
+	}
+
+	return out
+}
+
 // Update the feed
 func (f *Feed) Update() error {
 	latest, err := FromRSS(f.RSS)
@@ -226,8 +238,8 @@ type Episode struct {
 
 // String implements the Stringer interface
 func (e *Episode) String() string {
-	return fmt.Sprintf("Title:\t%s\nURL:\t%s\nMP3:\t%s\nUpdated:\t%s\nPlayed:\t%v\nElapsed:\t%s\n",
-		e.Title, e.URL, e.Mp3, e.Published.Format("2006-01-02"), e.Played, ParseElapsed(e.Elapsed))
+	return fmt.Sprintf("Title:\t%s\nID:\t%d\nURL:\t%s\nMP3:\t%s\nUpdated:\t%s\nPlayed:\t%v\nElapsed:\t%s\n",
+		e.Title, e.ID, e.URL, e.Mp3, e.Published.Format("2006-01-02"), e.Played, ParseElapsed(e.Elapsed))
 }
 
 // Episodes is its own type in order to implement a sort interface

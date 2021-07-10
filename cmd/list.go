@@ -31,14 +31,15 @@ import (
 var listCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List feeds/episodes in store",
-	Long:  `List output can be marked as played/unplayed, and saved as playlists`,
+	Long:  `List output can be marked as played/unplayed, and saved as playlists. The --filter, --episodes, and --playlist flags are mutually exclusive.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		var (
 			feed, _         = cmd.Flags().GetInt("feed")
 			episodes, _     = cmd.Flags().GetString("episodes")
 			filter, _       = cmd.Flags().GetString("filter")
 			save, _         = cmd.Flags().GetString("save")
-			playlists, _    = cmd.Flags().GetBool("playlists")
+			list, _         = cmd.Flags().GetString("playlist")
+			summary, _      = cmd.Flags().GetBool("summary")
 			details, _      = cmd.Flags().GetBool("details")
 			markPlayed, _   = cmd.Flags().GetBool("mark-played")
 			markUnplayed, _ = cmd.Flags().GetBool("mark-unplayed")
@@ -50,36 +51,58 @@ var listCmd = &cobra.Command{
 			return
 		}
 
+		// Check flags
+		excFlagCount := 0
+		if filter != ".*" {
+			excFlagCount++
+		}
+		if episodes != "" {
+			excFlagCount++
+		}
+		if list != "" {
+			excFlagCount++
+		}
+		if excFlagCount > 1 {
+			fmt.Println("--filter (-r), --episodes (-e), and --playlist (-l) are mutually exclusive.\nPlease only use one.")
+			return
+		}
+
 		if feed < 0 {
-			fmt.Fprint(tw, "ID\tName\tEps\tPlayed\tLast Updated\n")
+			if !details {
+				fmt.Fprint(tw, "ID\tName\tEps\tPlayed\tLast Updated\n")
+			}
+
 			for i, feed := range store.Feeds {
 				if details {
-					fmt.Println(feed.String())
+					fmt.Fprint(tw, feed.String())
 				} else {
 					fmt.Fprintf(tw, "%d\t%s\t%d\t%d\t%s\n", i, feed.Title, len(feed.Episodes), feed.Played(), feed.Updated.Format(dateFmt))
 				}
 			}
 
-			if !details {
-				tw.Flush()
-			}
+			tw.Flush()
 			return
 		}
 
-		if playlists {
-			fmt.Fprintln(tw, store.Feeds[feed].String())
+		if summary {
+			fmt.Fprint(tw, store.Feeds[feed].String())
 			tw.Flush()
 			return
 		}
 
 		// List episodes from selected feed, apply mark/print full details if flagged
-		fmt.Fprint(tw, "ID\tName\tPlayed\tPub Date\n")
+		if !details {
+			fmt.Fprint(tw, "ID\tName\tPlayed\tPub Date\n")
+		}
+
 		var eps pod.Episodes
 		switch {
 		case filter != ".*":
 			eps = store.Feeds[feed].Filter(filter)
 		case episodes != "":
 			eps = store.Feeds[feed].Set(episodes)
+		case list != "":
+			eps = store.Feeds[feed].Playlist(list)
 		default:
 			eps = store.Feeds[feed].Episodes
 		}
@@ -92,7 +115,7 @@ var listCmd = &cobra.Command{
 				ep.Played = false
 			}
 			if details {
-				fmt.Println(ep)
+				fmt.Fprintln(tw, ep)
 			} else {
 				fmt.Fprintf(tw, "%d\t%s\t%s\t%s\n", ep.ID, ep.Title, played(ep.Played), ep.Published.Format(dateFmt))
 			}
@@ -107,9 +130,7 @@ var listCmd = &cobra.Command{
 		}
 
 		// Print list text
-		if !details {
-			tw.Flush()
-		}
+		tw.Flush()
 
 		// Save the playlist
 		if save != "" {
@@ -120,7 +141,7 @@ var listCmd = &cobra.Command{
 			store.Feeds[feed].Playlists[save] = playlist
 			pod.WriteStore(store)
 
-			fmt.Println("Playlist saved")
+			fmt.Printf("Playlist saved as '%s'\n", save)
 		}
 	},
 }
@@ -131,8 +152,9 @@ func init() {
 	listCmd.Flags().IntP("feed", "f", -1, "List episodes for feed")
 	listCmd.Flags().StringP("filter", "r", ".*", "Filter episodes with a regular expression. See the RE2 specification for details. Use single quotes to wrap your expression.")
 	listCmd.Flags().StringP("episodes", "e", "", "Filter episodes as a range (0-10) or a comma separated set (3,5,6). This cannot contain spaces and is overridden by the -r flag.")
+	listCmd.Flags().StringP("playlist", "l", "", "Print playlist episodes details.")
 	listCmd.Flags().StringP("save", "s", "", "Save list as playlist. You must specify a feed with -f to use this. Playlists are saved as part of the feed record in the store.")
-	listCmd.Flags().BoolP("playlists", "l", false, "Only print details/playlists for selected feed.")
+	listCmd.Flags().BoolP("summary", "m", false, "Only print summary for selected feed.")
 	listCmd.Flags().BoolP("details", "d", false, "Print full details of selected feed/episode.")
 	listCmd.Flags().BoolP("mark-played", "p", false, "Mark the listed episodes as played. Only works in conjunction with the -f flag.")
 	listCmd.Flags().BoolP("mark-unplayed", "u", false, "Mark the listed episodes as unplayed. Only works in conjunction with the -f flag.")

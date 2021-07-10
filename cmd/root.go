@@ -24,8 +24,11 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
 	"text/tabwriter"
 
+	"github.com/esiqveland/notify"
+	"github.com/godbus/dbus/v5"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/nboughton/yapa/pod"
 	"github.com/spf13/cobra"
@@ -39,7 +42,7 @@ var (
 
 	dateFmt = "2006-01-02 15:04"
 
-	tw = tabwriter.NewWriter(os.Stdout, 2, 2, 2, ' ', 0)
+	tw = tabwriter.NewWriter(os.Stdout, 1, 2, 1, ' ', 0)
 )
 
 const (
@@ -110,4 +113,48 @@ func initConfig() {
 	if err := viper.ReadInConfig(); err == nil {
 		fmt.Println("")
 	}
+}
+
+// clear terminal screen
+func clear() error {
+	cmd := exec.Command("clear")
+	cmd.Stdout = os.Stdout
+	return cmd.Run()
+}
+
+// run tput (used for show/hide cursor during playback)
+func tput(arg string) error {
+	cmd := exec.Command("tput", arg)
+	cmd.Stdout = os.Stdout
+	err := cmd.Run()
+	return err
+}
+
+// Send desktop notifications via dbus
+func sendNotify(title, message string) error {
+	conn, err := dbus.SessionBusPrivate()
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	if err = conn.Auth(nil); err != nil {
+		return err
+	}
+
+	if err = conn.Hello(); err != nil {
+		return err
+	}
+
+	// Send notification
+	_, err = notify.SendNotification(conn, notify.Notification{
+		AppName:       "yapa",
+		ReplacesID:    uint32(0),
+		Summary:       title,
+		Body:          message,
+		Hints:         map[string]dbus.Variant{},
+		ExpireTimeout: 10000,
+	})
+
+	return err
 }
