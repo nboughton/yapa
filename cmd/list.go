@@ -31,7 +31,7 @@ import (
 var listCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List feeds/episodes in store",
-	Long:  `List output can be marked as played/unplayed, and saved as playlists. The --filter, --episodes, and --playlist flags are mutually exclusive.`,
+	Long:  `List output can be marked as played/unplayed, and saved as playlists.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		var (
 			feed, _         = cmd.Flags().GetInt("feed")
@@ -176,15 +176,15 @@ func init() {
 	rootCmd.AddCommand(listCmd)
 
 	listCmd.Flags().IntP("feed", "f", -1, "List episodes for feed")
-	listCmd.Flags().StringP("filter", "r", ".*", "Filter episodes with a RE2 compatible regular expression.")
-	listCmd.Flags().StringP("episodes", "e", "", "Filter episodes as a range (0-10) or a comma separated set (3,5,6). No spaces.")
-	listCmd.Flags().StringP("playlist", "l", "", "Print playlist.")
-	listCmd.Flags().StringP("save", "s", "", "Save results as playlist.")
-	listCmd.Flags().StringP("add-to-playlist", "a", "", "Append episodes to an existing playlist.")
-	listCmd.Flags().BoolP("summary", "m", false, "Only print summary for selected feed.")
-	listCmd.Flags().BoolP("details", "d", false, "Print full details of selected feed/episode.")
-	listCmd.Flags().BoolP("mark-played", "p", false, "Mark the listed episodes as played.")
-	listCmd.Flags().BoolP("mark-unplayed", "u", false, "Mark the listed episodes as unplayed.")
+	listCmd.Flags().StringP("filter", "r", ".*", "Filter episodes with a RE2 compatible regular expression")
+	listCmd.Flags().StringP("episodes", "e", "", "Filter episodes as a range (0-10) or a comma separated set (3,5,6). No spaces")
+	listCmd.Flags().StringP("playlist", "l", "", "Print playlist")
+	listCmd.Flags().StringP("save", "s", "", "Save results as playlist")
+	listCmd.Flags().StringP("add-to-playlist", "a", "", "Append episodes to an existing playlist")
+	listCmd.Flags().BoolP("summary", "m", false, "Only print summary for selected feed")
+	listCmd.Flags().BoolP("details", "d", false, "Print full details of selected feed/episode")
+	listCmd.Flags().BoolP("mark-played", "p", false, "Mark the listed episodes as played")
+	listCmd.Flags().BoolP("mark-unplayed", "u", false, "Mark the listed episodes as unplayed")
 }
 
 func played(p bool) string {

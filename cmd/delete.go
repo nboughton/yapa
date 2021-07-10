@@ -78,8 +78,8 @@ var deleteCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(deleteCmd)
-	deleteCmd.Flags().IntP("feed", "f", -1, "Feed to delete.")
-	deleteCmd.Flags().StringP("playlist", "l", "", "Playlist to delete.")
+	deleteCmd.Flags().IntP("feed", "f", -1, "Feed to delete or delete playlist to delete from")
+	deleteCmd.Flags().StringP("playlist", "l", "", "Playlist to delete")
 }
 
 func confirm() bool {

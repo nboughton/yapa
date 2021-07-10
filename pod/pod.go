@@ -126,15 +126,13 @@ func (f *Feed) Filter(e string) Episodes {
 }
 
 // Set or range of episodes, a range should match a pattern like 0-100
-// a range should be a comma separated list (0,34,96) with no spaces
+// a set should be a comma separated list (0,34,96) with no spaces
 func (f *Feed) Set(s string) Episodes {
-	var (
-		set = strings.Split(s, ",")
-		out Episodes
-	)
+	var out Episodes
 
 	switch {
 	case strings.Contains(s, ","):
+		set := strings.Split(s, ",")
 		for _, i := range set {
 			id, _ := strconv.Atoi(i)
 			if id < len(f.Episodes) {

@@ -43,6 +43,11 @@ var (
 	dateFmt = "2006-01-02 15:04"
 
 	tw = tabwriter.NewWriter(os.Stdout, 1, 2, 1, ' ', 0)
+
+	defaultConf = `{
+		"store": "~/.config/yapa/store.json",
+		"notify": true
+	}`
 )
 
 const (
@@ -112,6 +117,9 @@ func initConfig() {
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
 		fmt.Println("")
+	} else {
+		fmt.Printf("No config file found. Please create a config at ~/config/yapa/config.json with the following format:\n%s", defaultConf)
+		os.Exit(1)
 	}
 }
 

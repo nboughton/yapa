@@ -74,7 +74,7 @@ func init() {
 	rootCmd.AddCommand(playCmd)
 
 	playCmd.Flags().IntP("feed", "f", 0, "Play feed, by default episodes marked played are ignored")
-	playCmd.Flags().StringP("playlist", "l", "", "Play a saved playlist. Use the details subcommand to see if a feed has any saved lists.")
+	playCmd.Flags().StringP("playlist", "l", "", "Play a saved playlist")
 	playCmd.Flags().Float32P("speed", "s", 1.0, "Play speed. Accepts values from 0.01 to 100")
 }
 

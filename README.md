@@ -54,6 +54,8 @@ Usage:
 
 Available Commands:
   add         Load a new RSS feed to the store
+  completion  generate the autocompletion script for the specified shell
+  delete      delete a feed or playlist from the store
   help        Help about any command
   list        List feeds/episodes in store
   play        Play a feed or playlist
