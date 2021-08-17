@@ -258,6 +258,7 @@ func (e Episodes) setIDs() {
 // FromRSS creates a new Feed obj by parsing data from an rss url
 func FromRSS(url string) (Feed, error) {
 	var fd Feed
+	now := time.Now()
 
 	// Parse feed
 	f, err := gofeed.NewParser().ParseURL(url)
@@ -270,6 +271,9 @@ func FromRSS(url string) (Feed, error) {
 		feedPub = f.PublishedParsed
 	} else if f.Updated != "" {
 		feedPub = f.UpdatedParsed
+	} else {
+		now.Add(time.Second)
+		feedPub = &now
 	}
 
 	// Load key data to Feed obj
@@ -286,6 +290,9 @@ func FromRSS(url string) (Feed, error) {
 			epPub = item.PublishedParsed
 		} else if item.Updated != "" {
 			epPub = item.UpdatedParsed
+		} else {
+			now.Add(time.Second)
+			epPub = &now
 		}
 
 		if len(item.Enclosures) == 0 {
