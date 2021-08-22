@@ -129,6 +129,7 @@ func (f *Feed) Filter(e string) Episodes {
 // a set should be a comma separated list (0,34,96) with no spaces
 func (f *Feed) Set(s string) Episodes {
 	var out Episodes
+	singleMatch := regexp.MustCompile(`^\d+$`)
 
 	switch {
 	case strings.Contains(s, ","):
@@ -152,6 +153,10 @@ func (f *Feed) Set(s string) Episodes {
 		}
 
 		out = f.Episodes[first : last+1]
+
+	case singleMatch.MatchString(s):
+		id, _ := strconv.Atoi(s)
+		out = append(out, f.Episodes[id])
 	}
 
 	return out
