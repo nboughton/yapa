@@ -277,7 +277,7 @@ func FromRSS(url string) (Feed, error) {
 	} else if f.Updated != "" {
 		feedPub = f.UpdatedParsed
 	} else {
-		now.Add(time.Second)
+		now = now.Add(time.Second)
 		feedPub = &now
 	}
 
@@ -296,7 +296,7 @@ func FromRSS(url string) (Feed, error) {
 		} else if item.Updated != "" {
 			epPub = item.UpdatedParsed
 		} else {
-			now.Add(time.Second)
+			now = now.Add(time.Second)
 			epPub = &now
 		}
 
